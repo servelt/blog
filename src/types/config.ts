@@ -67,9 +67,12 @@ export type ProfileConfig = {
 	links: {
 		name: string;
 		url: string;
-		icon: string;
+		icon?: string;
+		iconType?: "iconify" | "image";
+		iconSrc?: string;
 	}[];
 };
+
 
 export type LicenseConfig = {
 	enable: boolean;
