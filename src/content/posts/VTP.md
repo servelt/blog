@@ -77,7 +77,7 @@ Switch# show vtp status
 주황색 스위치는 `Transparent 모드,`<br>
 노란색 스위치는 `Client 모드로` 지정을 해줄것이다!
 
-### 빨간색 스위치 설정정
+### 빨간색 스위치 설정
 아래는 빨간색 스위치에 관한 설정이다!
 ```network
 Switch> enable
