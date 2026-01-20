@@ -1,7 +1,7 @@
 ---
 title: 루핑 및 그룹화 정리
 published: 2025-09-16
-tags: [pwnable]
+tags: [Pwnable]
 category: Concept
 ---
 ## ROP란?
