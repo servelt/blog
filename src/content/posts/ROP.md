@@ -1,5 +1,5 @@
 ---
-title: 루핑 및 그룹화 정리
+title: ROP (Return Oriented Programming) 정리
 published: 2025-09-16
 tags: [Pwnable]
 category: Concept
