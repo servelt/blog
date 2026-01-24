@@ -33,6 +33,7 @@ L3장비인 라우터에서 `직접 아이피 할당을 해주도록 설정 할 
 ```network
 Router> enable
 Router# configure terminal
+Router(config)# service dhcp
 Router(config)# ip dhcp excluded-address 192.168.10.1
 Router(config)# ip dhcp excluded-address 172.16.10.1
 Router(config)# ip dhcp excluded-address 172.16.20.1
@@ -60,7 +61,8 @@ Router(dhcp-config)# dns-server 8.8.8.8
 ```
 이제 명령어를 해석해보도록하자!
 
-일단 `ip dhcp excluded-address 아이피`<br>
+일단 `service dhcp` 명령어를 통해 dhcp 서비스를 활성화 시킬수 있다!
+또한 `ip dhcp excluded-address 아이피`<br>
 명령어를 통해 dhcp를 통해 `할당되지 않을 아이피를 설정할 수 있다!`<br>
 기본적으로 이 명령어는 `게이트웨이 주소가 나오지 않게 하기 위해` 사용된다!<br>
 위 명령어를 통해 게이트웨이가 못나오도록 만들어줬으면,<br>
