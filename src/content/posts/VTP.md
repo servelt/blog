@@ -1,5 +1,5 @@
 ---
-title: VTP (VLAN Trunking Protocol) 정리
+title: VTP (VLAN Trunking Protocol) 개념 정리
 published: 2026-01-20
 tags: [Network]
 category: Concept

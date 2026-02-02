@@ -1,5 +1,5 @@
 ---
-title: Static Routing 정리
+title: Static Routing 개념 정리
 published: 2026-01-28
 tags: [Network]
 category: Concept

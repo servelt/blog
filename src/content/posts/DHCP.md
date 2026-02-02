@@ -1,5 +1,5 @@
 ---
-title: DHCP 정리
+title: DHCP 개념 정리
 published: 2026-01-21
 tags: [Network]
 category: Concept

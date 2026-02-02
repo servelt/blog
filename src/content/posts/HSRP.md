@@ -1,6 +1,6 @@
 ---
 title: HSRP (Hot Standby Router Protocol) 개념 정리
-published: 2026-02-2
+published: 2026-02-02
 tags: [Network]
 category: Concept
 ---

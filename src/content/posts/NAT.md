@@ -1,5 +1,5 @@
 ---
-title: NAT (Network Address Translation) 정리
+title: NAT (Network Address Translation) 개념 정리
 published: 2026-01-23
 tags: [Network]
 category: Concept

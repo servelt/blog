@@ -1,5 +1,5 @@
 ---
-title: 루핑 및 그룹화 정리
+title: 루핑 및 그룹화 개념 정리
 published: 2026-01-21
 tags: [Network]
 category: Concept

@@ -1,5 +1,5 @@
 ---
-title: VLAN 및 Trunking 정리
+title: VLAN 및 Trunking 개념 정리
 published: 2026-01-19
 tags: [Network]
 category: Concept

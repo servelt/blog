@@ -1,5 +1,5 @@
 ---
-title: ROP (Return Oriented Programming) 정리
+title: ROP (Return Oriented Programming) 개념 정리
 published: 2025-09-16
 tags: [Pwnable]
 category: Concept

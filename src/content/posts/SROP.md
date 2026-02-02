@@ -1,5 +1,5 @@
 ---
-title: SROP (Sigreturn Oriented Programming) 정리
+title: SROP (Sigreturn Oriented Programming) 개념 정리
 published: 2026-01-18
 tags: [Pwnable]
 category: Concept
