@@ -1,0 +1,48 @@
+---
+type Item = {
+  label: string;
+  value: string;
+  href: string;
+  icon?: string;
+};
+
+const { items = [] } = Astro.props as { items: Item[] };
+---
+
+<div class="pcards">
+  {items.map((it) => (
+    <a class="pcard" href={it.href} target="_blank" rel="noreferrer">
+      <div class="icon" aria-hidden="true"></div>
+      <div class="txt">
+        <div class="label">{it.label}</div>
+        <div class="value">{it.value}</div>
+      </div>
+    </a>
+  ))}
+</div>
+
+<style>
+  .pcards { display:flex; flex-direction:column; gap:12px; margin-top:12px; }
+  .pcard {
+    display:flex; align-items:center; gap:14px;
+    padding:14px 16px;
+    border-radius:14px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.08);
+    box-shadow: 0 6px 18px rgba(0,0,0,.35);
+    text-decoration:none;
+    color: inherit;
+  }
+  .pcard:hover {
+    transform: translateY(-1px);
+    border-color: rgba(180,140,255,.35);
+  }
+  .icon {
+    width:42px; height:42px; border-radius:12px;
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.08);
+    flex: 0 0 auto;
+  }
+  .label { font-weight: 800; font-size: 0.98rem; }
+  .value { opacity:.75; font-size: 0.92rem; margin-top:2px; }
+</style>
