@@ -16,6 +16,7 @@ import remarkGithubAdmonitionsToDirectives from "remark-github-admonitions-to-di
 import remarkMath from "remark-math";
 import remarkSectionize from "remark-sectionize";
 import { expressiveCodeConfig } from "./src/config.ts";
+import mdx from "@astrojs/mdx";
 import { pluginLanguageBadge } from "./src/plugins/expressive-code/language-badge.ts";
 import { AdmonitionComponent } from "./src/plugins/rehype-component-admonition.mjs";
 import { GithubCardComponent } from "./src/plugins/rehype-component-github-card.mjs";
@@ -101,6 +102,7 @@ export default defineConfig({
 		}),
         svelte(),
 		sitemap(),
+		mdx(),
 	],
 	markdown: {
 		remarkPlugins: [
