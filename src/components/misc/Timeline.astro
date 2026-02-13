@@ -1,6 +1,7 @@
 ---
 type Entry = {
-  title?: unknown;
+  title: string;
+  url?: string;
   subtitle?: string;
   period?: string;
   color?: "green" | "yellow" | "gray";
@@ -18,7 +19,9 @@ const { entries = [] } = Astro.props as { entries: Entry[] };
       </div>
 
       <div class="body">
-        <div class="title">{e.title}</div>
+        <div class="title">
+          {e.url ? <a href={e.url} target="_blank" rel="noopener noreferrer">{e.title}</a> : e.title}
+        </div>
         {e.subtitle ? <div class="sub">{e.subtitle}</div> : null}
         {e.period ? <div class="period">{e.period}</div> : null}
       </div>
@@ -48,6 +51,10 @@ const { entries = [] } = Astro.props as { entries: Entry[] };
   .row.gray .line { background: rgba(255,255,255,.12); }
 
   .title { font-weight: 850; }
+  .title a {
+    color: inherit;
+    text-decoration: inherit;
+  }
   .sub { opacity:.8; margin-top:4px; }
   .period { opacity:.6; margin-top:6px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 </style>
