@@ -44,7 +44,7 @@ HSRP는 간단히 말해, 게이트웨이 경로가 죽으면,<br>
 Router> enable
 Router# configure terimnal
 Router(config)# interface fa0/0
-Router(config-if)# ip add 192.168.10.1
+Router(config-if)# ip add 192.168.10.1 255.255.255.0
 Router(config-if)# standby 1 ip 192.168.10.100
 Router(config-if)# standby 1 preempt
 Router(config-if)# standby 1 priority 109
@@ -55,10 +55,9 @@ Router(config-if)# no shutdown
 Router> enable
 Router# configure terminal
 Router(config)# interface fa0/0
-Router(config-if)# ip add 192.168.10.254
+Router(config-if)# ip add 192.168.10.254 255.255.255.0
 Router(config-if)# standby 1 ip 192.168.10.100
 Router(config-if)# standby 1 preempt 
-Router(config-if)# standby 1 priority 109
 Router(config-if)# standby 1 track s0/0/1
 Router(config-if)# no shutdown
 ```
