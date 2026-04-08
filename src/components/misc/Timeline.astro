@@ -4,7 +4,7 @@ type Entry = {
   url?: string;
   subtitle?: string;
   period?: string;
-  color?: "green" | "yellow" | "gray";
+  color?: "green" | "yellow" | "silver" | "blue" | "gray";
 };
 
 const { entries = [] } = Astro.props as { entries: Entry[] };
@@ -47,6 +47,8 @@ const { entries = [] } = Astro.props as { entries: Entry[] };
 
   .row.green .dot, .row.green .line { background: #49d17a; }
   .row.yellow .dot, .row.yellow .line { background: #f3c969; }
+  .row.silver .dot, .row.silver .line { background: #b8c2cc; }
+  .row.blue .dot, .row.blue .line { background: #5aa9ff; }
   .row.gray .dot { background: rgba(255,255,255,.35); }
   .row.gray .line { background: rgba(255,255,255,.12); }
 
