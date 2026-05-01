@@ -1,6 +1,6 @@
 ---
 title: 기능경기대회 사이버보안 후기
-published: 2025-04-15
+published: 2026-04-15
 tags: [Competiton]
 category: Vlog
 ---
