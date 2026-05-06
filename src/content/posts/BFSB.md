@@ -541,7 +541,7 @@ OVERFLOW의 진입 조건` mode=0 && write_ptr > write_base를`<br>
 스택에 연결되도록 바꿀 수 있다.<br>
 (여기서 *$로 Libc_start_main의 주소를 쓸때 `2/1 확률로써 성공하게 된다.`)
 
-이제 $0x21의 주소는 Stderr->write_ptr 일 것이고,<br>
+이제 `$0x21`의 주소는 Stderr->write_ptr 일 것이고,<br>
 어짜피 맨 앞에서 루핑을 위해 `0x99를 출력할것 이기에,`<br>
 이를 그대로 동일하게 `$0x21에 덮어씌움으로써`<br>
 `OVERFLOW 함수 조건을 모두 만족시킬 수 있었다`.<br>
