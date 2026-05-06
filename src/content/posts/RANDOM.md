@@ -9,7 +9,7 @@ category: Concept
 기본적으로 ASLR, PIE를 옛날에 공부할땐, <br>
 간단히 `PIE는 CS(Code Segment), DS(Data Segment)` 등을 랜덤화 하고,<br>
 `ASLR은 SS(Stack Segment), HS(Heap Segment)`등을 랜덤화 시킨다는것 정도만<br>
-기억하고 문제를 풀이 했었다. 하지만 점점 포너블 고렙들을 풀 수 록,<br>
+기억하고 문제를 풀이 했었다. 하지만 점점 포너블 고렙들을 풀수록,<br>
 랜덤화 된 주소중에서도 고정된 부분과 그에 따른 오프셋들을 이용하는 부분이 생각보다 많아서,<br>
 이 참에 정리도 할 겸 각 랜덤화 기법의 고정된 부분과 오프셋 관련을 자세하게 정리하고자 한다.<br> 
 
