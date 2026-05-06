@@ -1,6 +1,6 @@
 ---
 title: Blind Format String Bug
-published: 2026-05-01
+published: 2026-05-06
 tags: [Pwnable]
 category: Concept
 ---
