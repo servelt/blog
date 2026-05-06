@@ -161,7 +161,7 @@ mov rsp, val주소 // rsp에서 Double Stack Pointer 발생!
 `결국 이전의 내용이 캐싱되어,` 2. 가 불가능하게 된다.<br>
 그에 반해 `인자를 소비하는 방식은` 포멧 스트링을 하나씩 차근차근 해석하기에,<br>
 `두번째 ptr을 조작하고, 조작한 주소에 값을 쓰는것이 가능해진다.`<br>
-또한 추가적으로 생각해야하는것은, $의 경우는, 인자를 하나하나씩 해석하다가,<br>
+또한 추가적으로 생각해야하는것은, `$`의 경우는, 인자를 하나하나씩 해석하다가,<br>
 `$가 나오면 그 이후부터 캐싱을 시작하게 된다.` 즉, $를 사용하더라도, `나중에 사용하면`<br>
 `충분히 원하는 주소에 값을 사용할 수 있다.` 아래는 예시 코드이다.
 ```plain
@@ -387,12 +387,12 @@ ld 영역의 주소인 Rtld_global 즉, Libc와 상위가 같은 주소가 `$0x2
 `$0x19->$0x3b->$0x21->Rtld`를 만들 수 있다.<br>
 (또한 여기서 `$0x21의` 스택 주소를 쓸때, `2/1 확률로서` 성공하게 된다)
 
-그리고 추가적으로, $12의 하위 4바이트 스택의 주소와 오프셋을 더해서<br>
-Rtld를 스택 포인터에 연결하게 되는데, 이 경우 $12의 하위 4바이트를 출력 후,<br>
-0x58을 더 출력해야지 rtld에 닿는걸 알 수 있다.<br>
-즉, 0x99를 출력하게 되면, 오프셋이 더 많이 출력되어 문제가 생기게 되며,<br>
-이를 해결하기 위해 RSP,RBP는 건들이지 않는 선에서 Vuln을 리턴할수 있는<br>
-하위 바이트인 0x50으로 리턴을 덮은 후, 0x8을 추가해서 이를 해결할 수 있었다.
+그리고 추가적으로, `$12의 하위 4바이트 스택의 주소와 오프셋을 더해서`<br>
+`Rtld를 스택 포인터에 연결하게 되는데,` 이 경우 $12의 하위 4바이트를 출력 후,<br>
+`0x58을 더 출력해야지` rtld에 닿는걸 알 수 있다.<br>
+즉,` 루핑을 위해 0x99를 출력하게 되면,` 오프셋이 더 많이 출력되어 문제가 생기게 되며,<br>
+이를 해결하기 위해 `RSP,RBP는 건들이지 않는 선에서` Vuln을 리턴할수 있는<br>
+하위 바이트인 `0x50으로 리턴을 덮은 후, 0x8을 추가해서` 이를 해결할 수 있었다.
 ![stack6](./BFSB/stack6.png)
 
 아래는 관련 코드이다.
@@ -429,7 +429,7 @@ pause()
 p.interactive()
 ```
 
-위 코드를 직접 디버깅하며, 32분의 1 확률을 뚫고<br>
+위 코드를 직접 디버깅하며, `32분의 1 확률을 뚫고`<br>
 (루핑 16/1, 스택 주소 2/1)<br>
 익스에 성공하면 아래와 같이 정상적으로 익스가 되는 걸 알 수 있었다.
 ![stack7](./BFSB/stack7.png)
@@ -437,39 +437,39 @@ p.interactive()
 
 ## Libc AAW와 FSOP 시나리오 - 이론
 이제 위에서 Rtld를 연결하였으니,<br>
-간단히 Libc_start_main의 하위 4바이트를 %*{}$c로,<br>
-추가로 원하는 오프셋을 %c로 출력함으로써,<br>
+간단히 `Libc_start_main의 하위 4바이트를` %*{}$c로,<br>
+`추가로 원하는 오프셋을` %c로 출력함으로써,<br>
 원하는 립씨 주소를 스택에 연결 할 수 있게 된다.
 
-또한 연결된 립씨 안 주소를 %n을 통해 덮어 쓰기도 가능하다.<br>
-이제 여기서 쉘을 따는 방식은, __exit_funcs, FSOP등이 존재할것인데,<br>
-복습도 할 겸 3월달에 배웠던 Glibc 2.23+ FSOP를 사용해 익스해보도록 하자.
+또한 연결된 립씨 안 주소를 `%n을 통해 덮어 쓰기도 가능하다.`<br>
+이제 여기서 쉘을 따는 방식은, `__exit_funcs, FSOP등이` 존재할것인데,<br>
+복습도 할 겸 3월달에 배웠던 `Glibc 2.23+ FSOP를` 사용해 익스해보도록 하자.
 
 일단 FSOP를 사용하기 위해선 간단히<br>
-Stdout, Stdin, Stderr등을 덮어서 익스플로잇 할 수 있을 것이다.<br>
-하지만 그 중, Stdin은 fgets가, Stdout은 printf가 사용하므로,<br>
-익스를 통해 하나씩 바꾸던 중간에 프로그램이 터져버릴수 있다.<br>
-그렇기에, Stderr을 덮어서 사용할 수 있을 것이다.
+`Stdout, Stdin, Stderr등을` 덮어서 익스플로잇 할 수 있을 것이다.<br>
+하지만 그 중, `Stdin은 fgets가, Stdout은 printf가` 사용하므로,<br>
+익스를 통해 하나씩 바꾸던 `중간에 프로그램이 터져버릴수 있다.`<br>
+그렇기에, `Stderr을 덮어서` 사용할 수 있을 것이다.
 
 ## Libc AAW와 FSOP 시나리오 - 익스플로잇 1 (인자 설정)
 이제 이론을 정리했으니 익스플로잇 해보도록 하자.<br>
-일단 익스플로잇을 하기 위해선, 아까 전 조작했던 Rtld값을<br>
-Stderr 값으로 조작해주어야 한다. 그러기 위해선<br>
-스택에서 가져올 Libc_start_main의 주소와 Stderr 간의 오프셋이 필요하다.<br>
-이제 그 값을 찾기위해 디버깅 해보면, 0x1da316인걸 알 수 있다.
+일단 익스플로잇을 하기 위해선, `아까 전 조작했던 Rtld값을`<br>
+`Stderr 값으로 조작해주어야 한다.` 그러기 위해선<br>
+스택에서 가져올 `Libc_start_main의 주소와 Stderr 간의 오프셋이` 필요하다.<br>
+이제 그 값을 찾기위해 디버깅 해보면, `0x1da316인걸` 알 수 있다.
 ![stack8](./BFSB/stack8.png)
 
-이제 Libc_start_main 하위 4바이트를 %*$c 문법으로,<br>
-0x1da316를 %c 문법으로 출력한후, Rtld가 있는 $0x3b에 <br>
-작성함으로써, Rtld가 아닌, Stderr이 스택에 연결되도록 바꿀 수 있다.<br>
-(여기서 *$로 Libc_start_main의 주소를 쓸때 2/1 확률로써 성공하게 된다.)
+이제 `Libc_start_main 하위 4바이트를` %*$c 문법으로,<br>
+`0x1da316를` %c 문법으로 출력한후, Rtld가 있는 `$0x3b에` <br>
+작성함으로써, `Rtld가 아닌, Stderr이 스택에 연결되도록` 바꿀 수 있다.<br>
+(여기서 *$로 Libc_start_main의 주소를 쓸때 `2/1 확률로써 성공하게 된다.`)
 
 이제 연결한후에 Stderr 주소는 flags 영역일것이고, <br>
-이 영역은 나중에 인자로써 사용될것이기에, \x01\;sh를 $0x21에 써넣어서<br>
-flags에 써넣음으로써 해결할 수 있다. 인자 문제를 해결 할 수 있을것이다.<br>
-또한 여기서 %n은 Integer 즉, 리틀앤디언으로 들어갈것이기에,<br>
-뒤집어서 아스키로 만든 0x68733b01 를 써넣음으로써 <br>
-시스템 함수 인자를 설정 할 수 있다. <br>
+이 영역은 나중에 인자로써 사용될 것이기에, `\x01\;sh를 $0x21에` 써넣어서<br>
+`즉, flags에 써넣음으로써` 인자 문제를 해결 할 수 있을것이다.<br>
+또한 여기서 %n은 Integer `즉, 리틀앤디언으로 들어갈 것이기에,`<br>
+뒤집어서 아스키헥사로 변환한 `0x68733b01를 써넣음으로써` <br>
+`시스템 함수 인자를` 설정 할 수 있다. <br>
 아래는 익스플로잇 코드이다.
 ```python
 from pwn import *
@@ -515,36 +515,36 @@ p.sendline(payload)
 pause()
 ```
 
-위 코드를 직접 디버깅하며, 64분의 1 확률을 뚫고<br>
+위 코드를 직접 디버깅하며, `64분의 1 확률을 뚫고`<br>
 (루핑 16/1, 스택 주소 2/1, Libc 주소 2/1)<br>
 익스에 성공하면 아래와 같이 정상적으로 익스가 되는걸 알 수 있었다.
 ![stack9](./BFSB/stack9.png)
 
 ## Libc AAW와 FSOP 시나리오 - 익스플로잇 2 (OVERFLOW)
-이제 인자를 설정하였으니, 간단히 FSOP의 첫번째 조건인<br>
-OVERFLOW의 진입 조건 mode=0 && write_ptr > write_base를<br>
+이제 인자를 설정하였으니, 간단히 `FSOP의 첫번째 조건인`<br>
+OVERFLOW의 진입 조건` mode=0 && write_ptr > write_base를`<br>
 만족시켜보도록 하자 일단 기본적으로 대부분의 요소들은 0으로 되어있기에,<br>
-간단히 write ptr의 값만 1 이상으로 바꿔주면 된다.<br>
+간단히 `write ptr의 값만 1 이상으로` 바꿔주면 된다.<br>
 기본적으로 루핑을 하려면 0x99를 무조권 출력 해야 하기에,<br>
-간단히 루핑을 한 후 바로 write_ptr에 %n을 해서<br>
+간단히 `루핑을 한 후 바로 write_ptr에 %n을 해서`<br>
 0x99를 덮어쓰게 하는 방식으로 가면 될듯하다. 
 
-일단 그러기 위해선, 첫번째로 $0x3b를 조작해 Stderr을<br>
-Stderr->_IO_write_ptr주소로 바꾸어줘야한다.<br>
+일단 그러기 위해선, 첫번째로 `$0x3b를` 조작해` Stderr을`<br>
+`Stderr->_IO_write_ptr주소로` 바꾸어줘야한다.<br>
 또한 바꾸어주기 위해선 오프셋이 필요하기에, 간단히 계산을 해보면,<br>
-오프셋은 0x1da33e인걸 알 수 있었다.
+오프셋은 `0x1da33e인걸` 알 수 있었다.
 ![stack10](./BFSB/stack10.png)
 
-이제 Libc_start_main 하위 4바이트를 %*$c 문법으로,<br>
-0x1da33e를 %c 문법으로 출력한후, Rtld가 있는 $0x3b에 <br>
-작성함으로써, Stderr가 아닌, Stderr->_IO_write_ptr이<br>
+이제 `Libc_start_main 하위 4바이트를` %*$c 문법으로,<br>
+`0x1da33e를` %c 문법으로 출력한후, Rtld가 있는 `$0x3b에` <br>
+작성함으로써, `Stderr가 아닌, Stderr->_IO_write_ptr이`<br>
 스택에 연결되도록 바꿀 수 있다.<br>
-(여기서 *$로 Libc_start_main의 주소를 쓸때 2/1 확률로써 성공하게 된다.)
+(여기서 *$로 Libc_start_main의 주소를 쓸때 `2/1 확률로써 성공하게 된다.`)
 
 이제 $0x21의 주소는 Stderr->write_ptr 일 것이고,<br>
-어짜피 맨 앞에서 루핑을 위해 0x99를 출력할 것 이기에,<br>
-이를 그대로 동일하게 $0x21에 덮어씌움으로써<br>
-OVERFLOW 함수 조건을 모두 만족시킬수 있었다.<br>
+어짜피 맨 앞에서 루핑을 위해 `0x99를 출력할것 이기에,`<br>
+이를 그대로 동일하게 `$0x21에 덮어씌움으로써`<br>
+`OVERFLOW 함수 조건을 모두 만족시킬 수 있었다`.<br>
 아래는 익스플로잇 코드이다.
 ```python
 from pwn import *
@@ -603,39 +603,39 @@ p.sendline(payload)
 pause()
 ```
 
-위 코드를 직접 디버깅하며, 64분의 1 확률을 뚫고<br>
+위 코드를 직접 디버깅하며, `64분의 1 확률을 뚫고`<br>
 (루핑 16/1, 스택 주소 2/1, Libc 주소 2/1)<br>
 익스에 성공하면 아래와 같이 정상적으로 익스가 되는걸 알 수 있었다.
 ![stack11](./BFSB/stack11.png)
 
 ## Libc AAW와 FSOP 시나리오 - 익스플로잇 3 (Vtable 조작)
 이제 OVERFLOW 조건을 모두 만족시켰으니, Vtables에 값을 가져와서 <br>
-__overflow 를 호출 할 것이다. 하지만, FSOP를 위해선 일반 Vtables이 아닌,<br>
-Wide Vtables인 _IO_wfile_jumps 안 __overflow를 실행해야하기에,<br>
-Vtables 영역을 _IO_wfile_jumps 주소로 바꾸어줘야한다.
+`__overflow 를 호출 할 것이다.` 하지만, FSOP를 위해선 일반 Vtables이 아닌,<br>
+Wide Vtables인 `_IO_wfile_jumps 안 __overflow를` 실행해야하기에,<br>
+Vtables 영역을 `_IO_wfile_jumps 주소로` 바꾸어줘야한다.
 
-일단 그러기 위해선, 첫번째로 $0x3b를 조작해 Stderr->wptr을<br>
-Stderr->Vtables주소로 바꾸어줘야한다.<br>
+일단 그러기 위해선, 첫번째로 `$0x3b를` 조작해 `Stderr->wptr을`<br>
+`Stderr->Vtables주소로` 바꾸어줘야한다.<br>
 또한 바꾸어주기 위해선 오프셋이 필요하기에, 간단히 계산을 해보면,<br>
-오프셋은 0x1da3ee인걸 알 수 있었다.
+오프셋은 `0x1da3ee 인 걸` 알 수 있었다.
 ![stack12](./BFSB/stack12.png)
 
-이제 Libc_start_main 하위 4바이트를 %*$c 문법으로,<br>
-0x1da3ee를 %c 문법으로 출력한후, Stderr->wptr가 있는 $0x3b에 <br>
-작성함으로써, wptr이 아닌, vtables이 스택에 연결되도록 바꿀 수 있다.<br>
-(여기서 *$로 Libc_start_main의 주소를 쓸때 2/1 확률로써 성공하게 된다.)
+이제 `Libc_start_main 하위 4바이트를` %*$c 문법으로,<br>
+`0x1da3ee를` %c 문법으로 출력한후, Stderr->wptr가 있는 `$0x3b에` <br>
+작성함으로써, `wptr이 아닌, vtables이` 스택에 연결되도록 바꿀 수 있다.<br>
+(여기서 *$로 Libc_start_main의 주소를 쓸때 `2/1 확률로써 성공하게 된다.`)
 
-이제 $0x21의 주소는 Stderr->Vtables 일 것이고,<br>
-그 안에 내용을 _IO_wfile_jumps로 바꿔야하기에,<br>
+이제 `$0x21의 주소는` Stderr->Vtables 일 것이고,<br>
+그 안에 `내용을 _IO_wfile_jumps로` 바꿔야하기에,<br>
 다시 Libc_start_main과의 오프셋을 확인해보면
 ![stack13](./BFSB/stack13.png)
-오프셋은 0x1d805e 인 걸 알 수 있었다.
+오프셋은 `0x1d805e 인 걸` 알 수 있었다.
 
-이제 Libc_start_main 하위 4바이트를 %*$c 문법으로,<br>
-0x1da3ee를 %c 문법으로 출력한 후,<br>
-Vtables가 있는 $0x21에 작성함으로써, 기본 점프가 아닌,<br>
-_IO_wfile_jumps가 덮어지도록 할 수 있다.<br>
-(여기서 *$로 Libc_start_main의 주소를 쓸때 2/1 확률로써 성공하게 된다.)
+이제 `Libc_start_main 하위 4바이트를` %*$c 문법으로,<br>
+`0x1da3ee를` %c 문법으로 출력한 후,<br>
+Vtables가 있는 `$0x21에` 작성함으로써, 기본 점프가 아닌,<br>
+`_IO_wfile_jumps가 덮어지도록` 할 수 있다.<br>
+(여기서 *$로 Libc_start_main의 주소를 쓸때 `2/1 확률로써 성공하게 된다.`)
 
 아래는 익스플로잇 코드이다
 ```python
@@ -709,51 +709,51 @@ p.sendline(payload)
 pause()
 ```
 
-위 코드를 직접 디버깅하며, 64분의 1 확률을 뚫고<br>
+위 코드를 직접 디버깅하며, `64분의 1 확률을 뚫고`<br>
 (루핑 16/1, 스택 주소 2/1, Libc 주소 2/1)<br>
 익스에 성공하면 아래와 같이 정상적으로 익스가 되는 걸 알 수 있었다.
 ![stack14](./BFSB/stack14.png)
 
 ## Libc AAW와 FSOP 시나리오 - 익스플로잇 4 (DOALLOC 조건)
 이제 정상적으로 Wide OVERFLOW 함수가 실행되었으면,<br>
-_IO_wdoallocbuf 함수 조건을 만족시켜서 최종 FSOP 진입점으로 들어가야한다.<br>
+`_IO_wdoallocbuf 함수 조건을 만족시켜서` 최종 FSOP 진입점으로 들어가야한다.<br>
 _IO_wdoallocbuf 함수 조건은 _IO_wdoallocbuf 실행 진입점에 대한 조건인<br>
-fp->_wide_data->_IO_write_base = 0,<br>
+`fp->_wide_data->_IO_write_base = 0`,<br>
 그리고 vtables의 doallocbuf를 실행하기 위한 조건인<br>
-fp->_wide_data->_IO_buf_base = 0 <br>
+`fp->_wide_data->_IO_buf_base = 0` <br>
 총 두 개의 조건을 모두 만족시켜야 되며,
 
-그러기 위해선, Stderr의 _wide_data 값을 지정해주어야 한다.<br>
+그러기 위해선, `Stderr의 _wide_data 값을` 지정해주어야 한다.<br>
 즉, _wide_data 요소와 Libc_start_main간의 오프셋을 구해야 하므로,<br>
-구해보면 오프셋은 0x1da3b6인걸 알 수 있었다.
+구해보면 오프셋은 `0x1da3b6`인걸 알 수 있었다.
 ![stack15](./BFSB/stack15.png)
 
-이제 Libc_start_main 하위 4바이트를 %*$c 문법으로,<br>
-0x1da3b6를 %c 문법으로 출력한후, Vtables가 있는 $0x3b에 <br>
-작성함으로써, Vtables이 아닌, _wide_data이 스택에 연결되도록 바꿀 수 있다.<br>
-(여기서 *$로 Libc_start_main의 주소를 쓸때 2/1 확률로써 성공하게 된다.)
+이제 `Libc_start_main 하위 4바이트를` %*$c 문법으로,<br>
+`0x1da3b6를` %c 문법으로 출력한후, Vtables가 있는 `$0x3b에` <br>
+작성함으로써, Vtables이 아닌, `_wide_data이 스택에 연결되도록` 바꿀 수 있다.<br>
+(여기서 *$로 Libc_start_main의 주소를 쓸때 `2/1 확률로써 성공하게 된다.`)
 
 또한, _wide_data를 바꾼 이후엔,<br>
-_wide_data의 요소인 _wide_vtables를 립씨 안 아무 주소로 바꾸고,<br>
-이후 다시 _wide_vtables의 요소인 doallocbuf 요소를 시스템 함수로 바꾸어,<br>
+_wide_data의 요소인 `_wide_vtables를 립씨 안 아무 주소로 바꾸고,`<br>
+이후 다시 `_wide_vtables의 요소인 doallocbuf 요소를 시스템 함수로 바꾸어,`<br>
 익스플로잇을 진행할것이기에,
 
-결국 _IO_write_base, _IO_buf_base 요소에 0이 들어가면서,<br>
-_wide_vtables에는 Libc주소가 들어가야한다.
+결국 `_IO_write_base, _IO_buf_base 요소에 0이` 들어가면서,<br>
+`_wide_vtables에는 Libc주소가` 들어가야한다.
 
 또한 그러기 위해선, 위 조건을 모두 만족시키는 주소를 찾아야하는데,<br>
-디버깅을 직접해서 립씨 세그먼트를 둘러보면 main_arena+2120 쪽에<br>
+디버깅을 직접해서 립씨 세그먼트를 둘러보면 `main_arena+2120` 쪽에<br>
 쓸만한 주소가 존재하는걸 알 수 있다.
 ![stack16](./BFSB/stack16.png)
 
 이제 쓸만한 립씨 주소를 찾았으니, 오프셋을 계산해보면,<br>
-오프셋은 0x1da13e인걸 알 수 있었다.
+오프셋은 `0x1da13e`인걸 알 수 있었다.
 ![stack17](./BFSB/stack17.png)
 
-이제 Libc_start_main 하위 4바이트를 %*$c 문법으로,<br>
-0x1da13e를 %c 문법으로 출력한후, _wide_data가 있는 $0x21에 <br>
+이제 `Libc_start_main 하위 4바이트를` %*$c 문법으로,<br>
+`0x1da13e를` %c 문법으로 출력한후, _wide_data가 있는 `$0x21에` <br>
 작성함으로써, main_arena+2120가 덮어지도록 할 수 있다.<br>
-(여기서 *$로 Libc_start_main의 주소를 쓸때 2/1 확률로써 성공하게 된다.)
+(여기서 *$로 Libc_start_main의 주소를 쓸때 `2/1 확률로써 성공하게 된다.`)
 
 아래는 익스플로잇 코드이다
 ```python
@@ -839,45 +839,45 @@ payload += f"%{0x1da13e-0x99}c%*{0x17}$c%{0x21}$n".encode()
 p.sendline(payload)
 pause()
 ```
-위 코드를 직접 디버깅하며, 64분의 1 확률을 뚫고<br>
+위 코드를 직접 디버깅하며, `64분의 1 확률을 뚫고`<br>
 (루핑 16/1, 스택 주소 2/1, Libc 주소 2/1)<br>
 익스에 성공하면 아래와 같이 정상적으로 익스가 되는 걸 알 수 있었다.
 ![stack18](./BFSB/stack18.png)
 
 ## Libc AAW와 FSOP 시나리오 - 익스플로잇 5 (System 1)
 이제 정상적으로 DOALLOC 함수가 실행되었으면, 이후 플래그 검사와 함께<br>
-fp->_wide_data->_wide_vtables->_doallocate를 실행할 것이다.<br>
-또한 이 _do_allocate를 실행할땐, 영역 검사가 없어서 시스템 함수를<br>
-끼워넣을수 있다. 일단 그러기 위해선 _wide_vtables를<br>
-_wide_vtables->_doallocate로 들어갔을때 Libc주소가<br>
-나오는 Libc안 주소에 넣어줘야한다.
+`fp->_wide_data->_wide_vtables->_doallocate`를 실행할 것이다.<br>
+또한 이 _do_allocate를 실행할땐, `영역 검사가 없어서` 시스템 함수를<br>
+끼워넣을수 있다. 일단 그러기 위해선 `_wide_vtables를`<br>
+`_wide_vtables->_doallocate로` 들어갔을때 <br>
+`Libc주소가 나오는 Libc안 주소에` 넣어줘야한다.
 
-일단 그러려면 첫번째로 $0x3b를 조작해 Stderr->_wide_data를<br>
-Stderr->Stderr->_wide_data->_wide_vtables 주소로 바꾸어줘야한다.<br>
+일단 그러려면 첫번째로 `$0x3b를` 조작해 `Stderr->_wide_data를`<br>
+`Stderr->Stderr->_wide_data->_wide_vtables 주소로` 바꾸어줘야한다.<br>
 또한 바꾸어주기 위해선 오프셋이 필요하기에, 간단히 계산을 해보면,
 ![stack19](./BFSB/stack19.png)
 ![stack20](./BFSB/stack20.png)
-오프셋은 0x1da21e인걸 알 수 있었다.
+오프셋은 `0x1da21e 인 걸` 알 수 있었다.
 
-이제 Libc_start_main 하위 4바이트를 %*$c 문법으로,<br>
-0x1da21e를 %c 문법으로 출력한후, _wide_data가 있는 $0x3b에 <br>
-작성함으로써, _wide_data가 아닌, _wide_vtables이 스택에 연결되도록 바꿀 수 있다.<br>
-(여기서 *$로 Libc_start_main의 주소를 쓸때 2/1 확률로써 성공하게 된다.)
+`이제 Libc_start_main 하위 4바이트를` %*$c 문법으로,<br>
+`0x1da21e를` %c 문법으로 출력한후, _wide_data가 있는 `$0x3b`에 <br>
+작성함으로써, _wide_data가 아닌, `_wide_vtables이 스택에 연결되도록` 바꿀 수 있다.<br>
+(여기서 *$로 Libc_start_main의 주소를 쓸때 `2/1 확률로써 성공하게 된다.`)
 
-이제 $0x21의 주소는 Stderr->_wide_data->_wide_vtables일 것이고,<br>
+이제 `$0x21의 주소는 Stderr->_wide_data->_wide_vtables일 것이고,`<br>
 그 안에 내용은 앞에서 말했다시피 doallocbuf 요소로 이동했을때,<br>
 Libc가 있는 주소를 정해줘야한다. 일단 그러한 주소를 찾기 위해,<br>
-Libc를 둘러보다보면, Stderr위에있는 _nl_global_locale 밑에 <br>
+Libc를 둘러보다보면, Stderr 근처 낮은 주소에 있는 `_nl_global_locale` 밑에 <br>
 Libc 주소들이 몰려있는걸 알 수 있다.<br>
-이중, _nl_global_locale+208 부분을 doallocate로 보고, <br>
-doallocate 요소 오프셋을 뺀후, 그 주소와 Libc_start_main간의 오프셋을 구해보면<br>
-오프셋은 0x1da25e인걸 알 수 있었다
+이중, `_nl_global_locale+208 부분을` doallocate로 보고, <br>
+doallocate 요소 오프셋을 뺀 후, 그 주소와 Libc_start_main간의 오프셋을 구해보면<br>
+오프셋은 `0x1da25e 인 걸` 알 수 있었다.
 ![stack21](./BFSB/stack21.png)
 
-이제 Libc_start_main 하위 4바이트를 %*$c 문법으로,<br>
-0x1da25e를 %c 문법으로 출력한후, _wide_vtables가 있는 $0x21에 <br>
-작성함으로써, _nl_global_locale+208가 덮어지도록 할 수 있다.<br>
-(여기서 *$로 Libc_start_main의 주소를 쓸때 2/1 확률로써 성공하게 된다.)
+`이제 Libc_start_main 하위 4바이트를` %*$c 문법으로,<br>
+`0x1da25e를` %c 문법으로 출력한후, _wide_vtables가 있는 `$0x21에` <br>
+작성함으로써, `_nl_global_locale+208가 덮어지도록` 할 수 있다.<br>
+(여기서 *$로 Libc_start_main의 주소를 쓸때 `2/1 확률로써 성공하게 된다.`)
 
 아래는 익스플로잇 코드이다
 ```python
@@ -976,40 +976,40 @@ payload += f"%{0x1da25e-0x99}c%*{0x17}$c%{0x21}$n".encode()
 p.sendline(payload)
 pause()
 ```
-위 코드를 직접 디버깅하며, 64분의 1 확률을 뚫고<br>
+위 코드를 직접 디버깅하며, `64분의 1 확률을 뚫고`<br>
 (루핑 16/1, 스택 주소 2/1, Libc 주소 2/1)<br>
 익스에 성공하면 아래와 같이 정상적으로 익스가 되는 걸 알 수 있었다.
 ![stack22](./BFSB/stack22.png)
 
 ## LIBC AAW와 FSOP 시나리오 - 익스플로잇 6 (System 2)
-이제 Stderr->_wide_data->_wide_vtables->doallocate 요소에 <br>
+이제 `Stderr->_wide_data->_wide_vtables->doallocate` 요소에 <br>
 Libc 주소가 존재하고, 이미 doallocate를 실행하기 위한<br>
 모든 조건은 만족시켰고, 인자도 모두 설정하였으니, 그냥 doallocate의<br>
-하위 4바이트를 System함수로 덮어씌워서 쉘을 획득 할 수 있다.
+`하위 4바이트를 System함수로 덮어씌워서 쉘을 획득 할 수 있다.`
 
-일단 그러려면 첫번째로 $0x3b를 조작해<br>
-Stderr->_wide_data->_wide_vtables를<br>
-Stderr->_wide_data->_wide_vtables->doallocate 주소로<br>
+일단 그러려면 첫번째로 `$0x3b를` 조작해<br>
+`Stderr->_wide_data->_wide_vtables를`<br>
+`Stderr->_wide_data->_wide_vtables->doallocate 주소로`<br>
 바꾸어줘야한다. 또한 바꾸어주기 위해선 Libc_start_main 간의<br>
 오프셋이 필요하기에, 간단히 계산을 해보면,
 ![stack23](./BFSB/stack23.png)
-오프셋은 0x1da2c6인걸 알 수 있었다.
+오프셋은 `0x1da2c6 인 걸` 알 수 있었다.
 
-이제 Libc_start_main 하위 4바이트를 %*$c 문법으로,<br>
-0x1da2c6를 %c 문법으로 출력한후, _wide_vtables가 있는 $0x3b에 <br>
-작성함으로써, _wide_data가 아닌, doallocate가 스택에 연결되도록 바꿀 수 있다.<br>
-(여기서 *$로 Libc_start_main의 주소를 쓸때 2/1 확률로써 성공하게 된다.)
+`이제 Libc_start_main 하위 4바이트를` %*$c 문법으로,<br>
+`0x1da2c6를` %c 문법으로 출력한후, _wide_vtables가 있는 `$0x3b에` <br>
+작성함으로써, _wide_data가 아닌, `doallocate가 스택에 연결되도록 바꿀 수 있다.`<br>
+(여기서 *$로 Libc_start_main의 주소를 쓸때 `2/1 확률로써 성공하게 된다.`)
 
-이제 $0x21의 주소는 Stderr->_wide_data->_wide_vtables->doallocate일 것이고,<br>
-그 안에 내용은 간단히 시스템 함수의 주소를 적어주면 된다.<br>
+이제 `$0x21의 주소는 Stderr->_wide_data->_wide_vtables->doallocate일 것이고,`<br>
+그 안에 내용은 간단히 `시스템 함수의 주소를` 적어주면 된다.<br>
 일단 그러기 위해선 오프셋이 필요하기에, 적당히 오프셋을 계산해보면?<br>
-오프셋은 0x2e586인걸 확인 할 수 있었다.
+오프셋은 `0x2e586인걸` 확인 할 수 있었다.
 ![stack24](./BFSB/stack24.png)
 
-이제 Libc_start_main 하위 4바이트를 %*$c 문법으로,<br>
-0x2e586를 %c 문법으로 출력한후, _wide_vtables가 있는 $0x21에 <br>
-작성함으로써, System함수가 덮어지도록 할 수 있다.<br>
-(여기서 *$로 Libc_start_main의 주소를 쓸때 2/1 확률로써 성공하게 된다.)
+`이제 Libc_start_main 하위 4바이트를` %*$c 문법으로,<br>
+`0x2e586를` %c 문법으로 출력한후, _wide_vtables가 있는 `$0x21에` <br>
+작성함으로써, `System함수가 덮어지도록` 할 수 있다.<br>
+(여기서 *$로 Libc_start_main의 주소를 쓸때 `2/1 확률로써 성공하게 된다.`)
 
 아래는 익스플로잇 코드이다.
 ```python
@@ -1122,15 +1122,16 @@ p.interactive()
 ```
 
 이제 모든 익스가 완료되었으니, 직접 가챠를 돌려서 <br>
-64분의 1확율로 스택,립씨의 양수 + 0.5바이트가 0x3인 <br>
+`64분의 1확률로` 스택,립씨의 양수, 0.5바이트가 0x3인 <br>
 확율을 뚫어 익스에 성공한후, 플래그를 출력해보면?
 ![flag](./BFSB/flag.png)
-플래그를 잘 출력하는것을 확인할수 있었다!
+`플래그를 잘 출력하는것을 확인할수 있었다!`
 
 # 스터디 후기
-이번 BFSB를 일주일동안 공부하면서 처음으로 FSB에 대해서<br>
-엄청 깊게 공부하게 되었다. 특히, 대부분의 기법은 아는 기법이었지만,<br>
-0.5바이트 가챠와, *$문법을 통한 가챠 기법들은 처음 들어보는 기법이어서,<br>
-꽤 유익했던 공부였던것 같다. 특히, 64분의 1확율로 익스에 성공하는터라,<br>
-디버깅하는 시간보다 가챠돌리는 시간 때문에 훨씬 익스하는데 많은 시간이<br>
-소요되었던 것 같다. 그래도 FSB에 대해서 깊게 배웠으니 좋은 경험을 한 것같다!
+이번 BFSB를 일주일 동안 공부하면서 처음으로 FSB에 대해서<br>
+`엄청 깊게 공부하게 되었다.` 특히, 대부분의 기법은 아는 기법이었지만,<br>
+`0.5바이트 가챠와, *$문법을 통한 가챠 기법들은` 처음 들어보는 기법이어서,<br>
+`꽤 유익했던 공부였던것 같다.` 특히, `64분의 1확율로 익스에 성공하는터라,`<br>
+디버깅하는 시간 보다 `가챠 돌리는 시간 때문에` 훨씬 익스하는데 많은 시간이<br>
+소요되었던 것 같다. `그래도 FSB에 대해서 깊게 배웠으니 좋은 경험이었다!`<br>
+끗이다!
