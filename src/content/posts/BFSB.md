@@ -4,11 +4,11 @@ published: 2026-05-06
 tags: [Pwnable]
 category: Concept
 ---
-## 개요
+# 개요
 이번 글은 `Rubiyalab의 포너블 스터디 주제 중` BFSB에 대해서 공부하면서 배운 것 들을 정리한 글이다.<br>
 재밋게 봐주길 바란다!
 
-## Format String Bug 기초
+# Format String Bug 기초
 기본적으로 `FSB란` printf를 사용할때 포멧 스트링을 통해 변수를 출력하는것이 아닌,<br>
 `변수 그대로를 인자로 넘겨 출력했으며,` 그 변수가 조작 가능할때 터지는 취약점으로,<br>
 변수에 직접 포멧스트링인 `%d, %p, %n등을` 넣어서 사용자가 원하는 `포멧 스트링을 임의로 실행할수 있게 된다.`
@@ -73,7 +73,7 @@ RSP(6번째 인자)에 0x7D0(2000)을 써넣기
 %*5$c는 r9(5번째 인자)에 값만큼 폭을 지정한후 출력하라는것이다.
 
 
-## Double Stack Pointer 개념
+# Double Stack Pointer 개념
 Double Stack Pointer란 스택의 주소가 다시 스택의 주소를 가르키는 이중 포인터를 뜻하며,<br>
 예를들어 Libc에 존재하는 __environ 변수안 포인터도 Double Stack Pointer가 될 수 있다.<br>
 (__environ 변수는 스택 주소를 가르키며, 다시 그 주소는 스택 주소를 가르킴)
@@ -148,7 +148,7 @@ mov r9, 6
 mov rsp, val주소 // rsp에서 Double Stack Pointer 발생!
 ```
 
-## DSP를 통한 임의 주소 쓰기
+# DSP를 통한 임의 주소 쓰기
 기본적으로 인자에 값을 지정하는 방식은 총 두가지가 있다.<br>
 첫번째는 인자들을 소비해서 지정하는 방식이고,<br>
 두번째는 앞에서 말했듯 $ 문법을 사용해서 지정하는 방식이다.<br>
