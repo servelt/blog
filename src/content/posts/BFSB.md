@@ -459,8 +459,8 @@ p.interactive()
 이제 그 값을 찾기위해 디버깅 해보면, `0x1da316인걸` 알 수 있다.
 ![stack8](./BFSB/stack8.png)
 
-이제 `Libc_start_main 하위 4바이트를` %*$c 문법으로,<br>
-`0x1da316를` %c 문법으로 출력한후, Rtld가 있는 `$0x3b에` <br>
+이제 Libc_start_main 하위 4바이트를 `%*$c 문법으로`,<br>
+0x1da316를 `%c 문법으로` 출력한후, Rtld가 있는 `$0x3b에` <br>
 작성함으로써, `Rtld가 아닌, Stderr이 스택에 연결되도록` 바꿀 수 있다.<br>
 (여기서 *$로 Libc_start_main의 주소를 쓸때 `2/1 확률로써 성공하게 된다.`)
 
@@ -535,8 +535,8 @@ OVERFLOW의 진입 조건` mode=0 && write_ptr > write_base를`<br>
 오프셋은 `0x1da33e인걸` 알 수 있었다.
 ![stack10](./BFSB/stack10.png)
 
-이제 `Libc_start_main 하위 4바이트를` %*$c 문법으로,<br>
-`0x1da33e를` %c 문법으로 출력한후, Rtld가 있는 `$0x3b에` <br>
+이제 Libc_start_main 하위 4바이트를 `%*$c 문법으로`,<br>
+0x1da33e를 `%c 문법으로` 출력한후, Rtld가 있는 `$0x3b에` <br>
 작성함으로써, `Stderr가 아닌, Stderr->_IO_write_ptr이`<br>
 스택에 연결되도록 바꿀 수 있다.<br>
 (여기서 *$로 Libc_start_main의 주소를 쓸때 `2/1 확률로써 성공하게 된다.`)
@@ -620,8 +620,8 @@ Vtables 영역을 `_IO_wfile_jumps 주소로` 바꾸어줘야한다.
 오프셋은 `0x1da3ee 인 걸` 알 수 있었다.
 ![stack12](./BFSB/stack12.png)
 
-이제 `Libc_start_main 하위 4바이트를` %*$c 문법으로,<br>
-`0x1da3ee를` %c 문법으로 출력한후, Stderr->wptr가 있는 `$0x3b에` <br>
+이제 Libc_start_main 하위 4바이트를 `%*$c 문법으로`,<br>
+0x1da3ee를 `%c 문법으로` 출력한후, Stderr->wptr가 있는 `$0x3b에` <br>
 작성함으로써, `wptr이 아닌, vtables이` 스택에 연결되도록 바꿀 수 있다.<br>
 (여기서 *$로 Libc_start_main의 주소를 쓸때 `2/1 확률로써 성공하게 된다.`)
 
@@ -631,8 +631,8 @@ Vtables 영역을 `_IO_wfile_jumps 주소로` 바꾸어줘야한다.
 ![stack13](./BFSB/stack13.png)
 오프셋은 `0x1d805e 인 걸` 알 수 있었다.
 
-이제 `Libc_start_main 하위 4바이트를` %*$c 문법으로,<br>
-`0x1da3ee를` %c 문법으로 출력한 후,<br>
+이제 Libc_start_main 하위 4바이트를 `%*$c 문법으로`,<br>
+0x1da3ee를 `%c 문법으로` 출력한 후,<br>
 Vtables가 있는 `$0x21에` 작성함으로써, 기본 점프가 아닌,<br>
 `_IO_wfile_jumps가 덮어지도록` 할 수 있다.<br>
 (여기서 *$로 Libc_start_main의 주소를 쓸때 `2/1 확률로써 성공하게 된다.`)
@@ -728,8 +728,8 @@ _IO_wdoallocbuf 함수 조건은 _IO_wdoallocbuf 실행 진입점에 대한 조�
 구해보면 오프셋은 `0x1da3b6`인걸 알 수 있었다.
 ![stack15](./BFSB/stack15.png)
 
-이제 `Libc_start_main 하위 4바이트를` %*$c 문법으로,<br>
-`0x1da3b6를` %c 문법으로 출력한후, Vtables가 있는 `$0x3b에` <br>
+이제 Libc_start_main 하위 4바이트를 `%*$c 문법으로`,<br>
+0x1da3b6를 `%c 문법으로` 출력한후, Vtables가 있는 `$0x3b에` <br>
 작성함으로써, Vtables이 아닌, `_wide_data이 스택에 연결되도록` 바꿀 수 있다.<br>
 (여기서 *$로 Libc_start_main의 주소를 쓸때 `2/1 확률로써 성공하게 된다.`)
 
@@ -750,8 +750,8 @@ _wide_data의 요소인 `_wide_vtables를 립씨 안 아무 주소로 바꾸고,
 오프셋은 `0x1da13e`인걸 알 수 있었다.
 ![stack17](./BFSB/stack17.png)
 
-이제 `Libc_start_main 하위 4바이트를` %*$c 문법으로,<br>
-`0x1da13e를` %c 문법으로 출력한후, _wide_data가 있는 `$0x21에` <br>
+이제 Libc_start_main 하위 4바이트를 `%*$c 문법으로`,<br>
+0x1da13e를 `%c 문법으로` 출력한후, _wide_data가 있는 `$0x21에` <br>
 작성함으로써, main_arena+2120가 덮어지도록 할 수 있다.<br>
 (여기서 *$로 Libc_start_main의 주소를 쓸때 `2/1 확률로써 성공하게 된다.`)
 
