@@ -859,8 +859,8 @@ pause()
 ![stack20](./BFSB/stack20.png)
 오프셋은 `0x1da21e 인 걸` 알 수 있었다.
 
-`이제 Libc_start_main 하위 4바이트를` %*$c 문법으로,<br>
-`0x1da21e를` %c 문법으로 출력한후, _wide_data가 있는 `$0x3b`에 <br>
+이제 Libc_start_main 하위 4바이트를 `%*$c 문법으로,`<br>
+0x1da21e를 `%c 문법으로` 출력한후, _wide_data가 있는 `$0x3b`에 <br>
 작성함으로써, _wide_data가 아닌, `_wide_vtables이 스택에 연결되도록` 바꿀 수 있다.<br>
 (여기서 *$로 Libc_start_main의 주소를 쓸때 `2/1 확률로써 성공하게 된다.`)
 
@@ -874,8 +874,8 @@ doallocate 요소 오프셋을 뺀 후, 그 주소와 Libc_start_main간의 오�
 오프셋은 `0x1da25e 인 걸` 알 수 있었다.
 ![stack21](./BFSB/stack21.png)
 
-`이제 Libc_start_main 하위 4바이트를` %*$c 문법으로,<br>
-`0x1da25e를` %c 문법으로 출력한후, _wide_vtables가 있는 `$0x21에` <br>
+이제 Libc_start_main 하위 4바이트를 `%*$c 문법으로,`<br>
+0x1da25e를 `%c 문법으로` 출력한후, _wide_vtables가 있는 `$0x21에` <br>
 작성함으로써, `_nl_global_locale+208가 덮어지도록` 할 수 있다.<br>
 (여기서 *$로 Libc_start_main의 주소를 쓸때 `2/1 확률로써 성공하게 된다.`)
 
@@ -995,8 +995,8 @@ Libc 주소가 존재하고, 이미 doallocate를 실행하기 위한<br>
 ![stack23](./BFSB/stack23.png)
 오프셋은 `0x1da2c6 인 걸` 알 수 있었다.
 
-`이제 Libc_start_main 하위 4바이트를` %*$c 문법으로,<br>
-`0x1da2c6를` %c 문법으로 출력한후, _wide_vtables가 있는 `$0x3b에` <br>
+이제 Libc_start_main 하위 4바이트를 `%*$c 문법으로,`<br>
+0x1da2c6를 `%c 문법으로` 출력한후, _wide_vtables가 있는 `$0x3b에` <br>
 작성함으로써, _wide_data가 아닌, `doallocate가 스택에 연결되도록 바꿀 수 있다.`<br>
 (여기서 *$로 Libc_start_main의 주소를 쓸때 `2/1 확률로써 성공하게 된다.`)
 
@@ -1006,8 +1006,8 @@ Libc 주소가 존재하고, 이미 doallocate를 실행하기 위한<br>
 오프셋은 `0x2e586인걸` 확인 할 수 있었다.
 ![stack24](./BFSB/stack24.png)
 
-`이제 Libc_start_main 하위 4바이트를` %*$c 문법으로,<br>
-`0x2e586를` %c 문법으로 출력한후, _wide_vtables가 있는 `$0x21에` <br>
+이제 Libc_start_main 하위 4바이트를 `%*$c 문법으로,`<br>
+0x2e586를 `%c 문법으로` 출력한후, _wide_vtables가 있는 `$0x21에` <br>
 작성함으로써, `System함수가 덮어지도록` 할 수 있다.<br>
 (여기서 *$로 Libc_start_main의 주소를 쓸때 `2/1 확률로써 성공하게 된다.`)
 
