@@ -1,28 +1,424 @@
 ---
 import type { CollectionEntry } from "astro:content";
+import { Icon } from "astro-icon/components";
 import { getPostUrlBySlug } from "@utils/url-utils";
-import PostCard from "./PostCard.astro";
 
 const { page } = Astro.props;
+const posts = page.data as CollectionEntry<"posts">[];
+const latest = posts[0];
+const isFirstPage = page.currentPage === 1;
 
 let delay = 0;
-const interval = 50;
+const interval = 45;
+
+function formatDate(date: Date) {
+	return new Intl.DateTimeFormat("en", {
+		month: "short",
+		day: "2-digit",
+		year: "numeric",
+	}).format(date);
+}
+
+function getPostDescription(entry: CollectionEntry<"posts">) {
+	return entry.data.description || entry.data.category || "Security note";
+}
 ---
-<div class="transition flex flex-col rounded-[var(--radius-large)] bg-[var(--card-bg)] py-1 md:py-0 md:bg-transparent md:gap-4 mb-4">
-    {page.data.map((entry: CollectionEntry<"posts">) => (
-        <PostCard
-                entry={entry}
-                title={entry.data.title}
-                tags={entry.data.tags}
-                category={entry.data.category}
-                published={entry.data.published}
-                updated={entry.data.updated}
-                url={getPostUrlBySlug(entry.slug)}
-                image={entry.data.image}
-                description={entry.data.description}
-                draft={entry.data.draft}
-                class:list="onload-animation"
-                style={`animation-delay: calc(var(--content-delay) + ${delay++ * interval}ms);`}
-        ></PostCard>
-    ))}
+<div class="home-shell">
+	{isFirstPage && latest && (
+		<a href={getPostUrlBySlug(latest.slug)} class="home-feature home-scroll-reveal onload-animation" aria-label={latest.data.title}>
+			<div class="home-feature-meta">
+				<span>Latest</span>
+				<time>{formatDate(latest.data.published)}</time>
+			</div>
+			<h1>{latest.data.title}</h1>
+			<p>{getPostDescription(latest)}</p>
+		</a>
+	)}
+
+	<div class="home-section-head home-scroll-reveal onload-animation" style={`animation-delay: calc(var(--content-delay) + ${isFirstPage ? 70 : 0}ms)`}>
+		<span>{isFirstPage ? `${page.total} posts` : `Page ${page.currentPage}`}</span>
+		<a href="/archive/" aria-label="Open archive">
+			Archive
+			<Icon name="material-symbols:arrow-forward-rounded"></Icon>
+		</a>
+	</div>
+
+	<div class="home-post-list mb-4">
+		{posts.map((entry) => {
+			const postUrl = getPostUrlBySlug(entry.slug);
+			const tagPreview = entry.data.tags?.slice(0, 2) ?? [];
+			const postDelay = (delay++ * interval) + (isFirstPage ? 115 : 35);
+
+			return (
+				<a
+					href={postUrl}
+					aria-label={entry.data.title}
+					class="home-post-row home-scroll-reveal onload-animation"
+					style={`animation-delay: calc(var(--content-delay) + ${postDelay}ms);`}
+				>
+					<time class="home-date">{formatDate(entry.data.published)}</time>
+
+					<div class="home-post-main">
+						<div class="home-post-meta">
+							<span>{entry.data.category || "Note"}</span>
+							{tagPreview.map((tag) => (
+								<span>#{tag}</span>
+							))}
+						</div>
+						<h2>{entry.data.title}</h2>
+						<p>{getPostDescription(entry)}</p>
+					</div>
+
+					<Icon name="material-symbols:arrow-forward-rounded" class="home-post-arrow"></Icon>
+				</a>
+			);
+		})}
+	</div>
 </div>
+
+<style>
+	.home-shell {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		gap: 1.35rem;
+		isolation: isolate;
+		padding-bottom: 3.2rem;
+	}
+
+	.home-shell::before {
+		content: "";
+		position: absolute;
+		inset: -5rem -2rem auto;
+		z-index: -1;
+		height: 24rem;
+		background:
+			radial-gradient(circle at 18% 0%, rgba(198, 132, 255, 0.16), transparent 18rem),
+			radial-gradient(circle at 82% 24%, rgba(172, 92, 255, 0.11), transparent 21rem);
+		pointer-events: none;
+	}
+
+	.home-feature {
+		position: relative;
+		display: block;
+		overflow: hidden;
+		border-left: 2px solid rgba(224, 188, 255, 0.75);
+		min-height: clamp(17rem, 38vh, 24rem);
+		padding: clamp(1.35rem, 4vw, 2.6rem) 0 clamp(1.45rem, 4vw, 2.8rem) clamp(1.2rem, 3vw, 2rem);
+		color: inherit;
+		text-decoration: none;
+		background:
+			radial-gradient(circle at 12% 18%, rgba(224, 188, 255, 0.18), transparent 16rem),
+			linear-gradient(90deg, rgba(198, 132, 255, 0.11), transparent 38rem);
+		box-shadow:
+			-10px 0 34px -28px rgba(198, 132, 255, 0.88),
+			0 1.5rem 5rem -4rem rgba(198, 132, 255, 0.72);
+		transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+	}
+
+	.home-feature:hover {
+		transform: translateY(-2px);
+		border-color: rgba(242, 222, 255, 0.98);
+		background: linear-gradient(90deg, rgba(198, 132, 255, 0.15), transparent 36rem);
+		box-shadow:
+			-12px 0 38px -24px rgba(198, 132, 255, 0.95),
+			0 0 28px rgba(172, 92, 255, 0.11);
+	}
+
+	.home-feature-meta,
+	.home-post-meta,
+	.home-section-head,
+	.home-section-head a,
+	.home-post-row {
+		display: flex;
+		align-items: center;
+	}
+
+	.home-feature-meta {
+		justify-content: space-between;
+		gap: 1rem;
+		color: rgb(232 216 255 / 0.58);
+		font-size: 0.78rem;
+		font-weight: 850;
+	}
+
+	.home-feature-meta span {
+		color: var(--primary);
+		font-weight: 950;
+	}
+
+	.home-feature h1 {
+		display: -webkit-box;
+		margin: clamp(2.4rem, 8vh, 4.6rem) 0 0.7rem;
+		overflow: hidden;
+		color: rgb(255 255 255 / 0.94);
+		font-size: clamp(2.25rem, 5.2vw, 4.6rem);
+		font-weight: 950;
+		line-height: 1.03;
+		letter-spacing: 0;
+		text-shadow:
+			0 0 1.4rem rgba(224, 188, 255, 0.24),
+			0 0 3.6rem rgba(176, 92, 255, 0.28);
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+	}
+
+	.home-feature p {
+		display: -webkit-box;
+		max-width: 52rem;
+		margin: 0;
+		overflow: hidden;
+		color: rgb(232 216 255 / 0.72);
+		font-size: clamp(1rem, 1.5vw, 1.12rem);
+		line-height: 1.7;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+	}
+
+	.home-section-head {
+		justify-content: space-between;
+		gap: 1rem;
+		padding: 0.1rem 0.1rem 0;
+		color: rgb(232 216 255 / 0.52);
+		font-size: 0.78rem;
+		font-weight: 850;
+	}
+
+	.home-section-head > span {
+		color: rgb(232 216 255 / 0.58);
+	}
+
+	.home-section-head a {
+		gap: 0.22rem;
+		color: var(--primary);
+		font-weight: 900;
+		text-decoration: none;
+	}
+
+	.home-section-head svg {
+		font-size: 1rem;
+		transition: transform 0.18s ease;
+	}
+
+	.home-section-head a:hover svg {
+		transform: translateX(2px);
+	}
+
+	.home-post-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+	}
+
+	.home-post-row {
+		position: relative;
+		grid-template-columns: none;
+		gap: 1.25rem;
+		min-height: clamp(8.4rem, 18vh, 11.6rem);
+		min-width: 0;
+		border-top: 1px solid rgba(198, 132, 255, 0.13);
+		padding: clamp(1.3rem, 3vh, 1.95rem) 0.3rem;
+		color: inherit;
+		text-decoration: none;
+		background: linear-gradient(90deg, rgba(198, 132, 255, 0.018), transparent 76%);
+		transition:
+			opacity 0.72s cubic-bezier(0.16, 0.84, 0.2, 1),
+			filter 0.72s cubic-bezier(0.16, 0.84, 0.2, 1),
+			border-color 0.2s ease,
+			transform 0.72s cubic-bezier(0.16, 0.84, 0.2, 1),
+			background 0.2s ease;
+	}
+
+	.home-post-row::before {
+		content: "";
+		width: 2px;
+		align-self: stretch;
+		border-radius: 999rem;
+		background: rgba(198, 132, 255, 0.22);
+		box-shadow: 0 0 0 rgba(198, 132, 255, 0);
+		transition: background 0.2s ease, box-shadow 0.2s ease;
+	}
+
+	.home-post-row:hover {
+		transform: translateX(2px);
+		border-color: rgba(198, 132, 255, 0.28);
+		background: linear-gradient(90deg, rgba(198, 132, 255, 0.055), transparent 65%);
+	}
+
+	.home-post-row:hover::before {
+		background: rgba(224, 188, 255, 0.95);
+		box-shadow:
+			0 0 10px rgba(198, 132, 255, 0.8),
+			0 0 22px rgba(172, 92, 255, 0.46);
+	}
+
+	.home-date {
+		width: 6.8rem;
+		flex: 0 0 auto;
+		color: rgb(232 216 255 / 0.54);
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 0.76rem;
+		font-weight: 850;
+		line-height: 1.35;
+	}
+
+	.home-post-main {
+		min-width: 0;
+		flex: 1 1 auto;
+	}
+
+	.home-post-meta {
+		flex-wrap: wrap;
+		gap: 0.38rem 0.55rem;
+		color: rgb(232 216 255 / 0.44);
+		font-size: 0.75rem;
+		font-weight: 820;
+	}
+
+	.home-post-meta span:first-child {
+		color: var(--primary);
+	}
+
+	.home-post-row h2 {
+		display: -webkit-box;
+		margin: 0.32rem 0 0.22rem;
+		overflow: hidden;
+		color: rgb(255 255 255 / 0.92);
+		font-size: clamp(1.18rem, 2vw, 1.48rem);
+		font-weight: 900;
+		line-height: 1.34;
+		letter-spacing: 0;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+	}
+
+	.home-post-row p {
+		display: -webkit-box;
+		margin: 0;
+		overflow: hidden;
+		color: rgb(232 216 255 / 0.62);
+		font-size: 0.95rem;
+		line-height: 1.66;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 1;
+	}
+
+	.home-post-arrow {
+		flex: 0 0 auto;
+		color: rgb(224 188 255 / 0.58);
+		font-size: 1.2rem;
+		transition: color 0.2s ease, transform 0.2s ease;
+	}
+
+	.home-post-row:hover .home-post-arrow {
+		color: var(--primary);
+		transform: translateX(3px);
+	}
+
+	.home-scroll-reveal {
+		transition:
+			opacity 0.72s cubic-bezier(0.16, 0.84, 0.2, 1),
+			filter 0.72s cubic-bezier(0.16, 0.84, 0.2, 1),
+			transform 0.72s cubic-bezier(0.16, 0.84, 0.2, 1),
+			background 0.2s ease,
+			border-color 0.2s ease,
+			box-shadow 0.2s ease;
+		will-change: opacity, filter, transform;
+	}
+
+	.home-scroll-reveal.is-waiting {
+		opacity: 0;
+		filter: blur(14px);
+		transform: translate3d(0, 2.8rem, 0) scale(0.975);
+	}
+
+	.home-scroll-reveal.is-visible {
+		opacity: 1;
+		filter: blur(0);
+		transform: translate3d(0, 0, 0) scale(1);
+	}
+
+	.home-feature.home-scroll-reveal.is-visible:hover {
+		transform: translateY(-2px);
+	}
+
+	.home-post-row.home-scroll-reveal.is-visible:hover {
+		transform: translateX(2px);
+	}
+
+	@media (max-width: 640px) {
+		.home-feature {
+			min-height: 15rem;
+			padding: 1.2rem 0 1.35rem 0.95rem;
+		}
+
+		.home-post-row {
+			align-items: flex-start;
+			gap: 0.7rem;
+			min-height: 7.4rem;
+		}
+
+		.home-date {
+			display: none;
+		}
+	}
+</style>
+
+<script is:inline>
+(() => {
+	const selector = ".home-scroll-reveal";
+	const visibleClass = "is-visible";
+	const waitingClass = "is-waiting";
+
+	function initHomeScrollReveal() {
+		document.querySelectorAll(".home-shell").forEach((shell) => {
+			if (!(shell instanceof HTMLElement) || shell.dataset.scrollRevealReady === "true") return;
+			shell.dataset.scrollRevealReady = "true";
+
+			const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+			const targets = Array.from(shell.querySelectorAll(selector)).filter(
+				(element) => element instanceof HTMLElement,
+			);
+
+			if (reduceMotion || !("IntersectionObserver" in window)) {
+				targets.forEach((element) => {
+					element.classList.remove(waitingClass);
+					element.classList.add(visibleClass);
+				});
+				return;
+			}
+
+			const observer = new IntersectionObserver(
+				(entries) => {
+					entries.forEach((entry) => {
+						if (!entry.isIntersecting) return;
+						const element = entry.target;
+						element.classList.remove(waitingClass);
+						element.classList.add(visibleClass);
+						observer.unobserve(element);
+					});
+				},
+				{ root: null, rootMargin: "0px 0px -16% 0px", threshold: 0.16 },
+			);
+
+			targets.forEach((element, index) => {
+				const rect = element.getBoundingClientRect();
+				const alreadyVisible = rect.top < window.innerHeight * 0.88;
+				element.style.setProperty("--home-reveal-order", String(index));
+
+				if (alreadyVisible) {
+					element.classList.add(visibleClass);
+					return;
+				}
+
+				element.classList.add(waitingClass);
+				observer.observe(element);
+			});
+		});
+	}
+
+	initHomeScrollReveal();
+	document.addEventListener("astro:page-load", initHomeScrollReveal);
+	document.addEventListener("swup:content:replace", initHomeScrollReveal);
+})();
+</script>

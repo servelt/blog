@@ -2,17 +2,18 @@
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
+import "../styles/variables.styl";
+import "../styles/global.css";
+import "../styles/markdown-extend.styl";
 
 import ConfigCarrier from "@components/ConfigCarrier.astro";
+import ImageWrapper from "@components/misc/ImageWrapper.astro";
 import { profileConfig, siteConfig } from "@/config";
 import {
-	AUTO_MODE,
 	BANNER_HEIGHT,
 	BANNER_HEIGHT_EXTEND,
 	BANNER_HEIGHT_HOME,
 	DARK_MODE,
-	DEFAULT_THEME,
-	LIGHT_MODE,
 	PAGE_WIDTH,
 } from "../constants/constants";
 import { defaultFavicons } from "../constants/icon";
@@ -110,23 +111,9 @@ const bannerOffset =
 		))}
 
 		<!-- Set the theme before the page is rendered to avoid a flash -->
-		<script is:inline define:vars={{DEFAULT_THEME, LIGHT_MODE, DARK_MODE, AUTO_MODE, BANNER_HEIGHT_EXTEND, PAGE_WIDTH, configHue}}>
-			// Load the theme from local storage
-			const theme = localStorage.getItem('theme') || DEFAULT_THEME;
-			switch (theme) {
-				case LIGHT_MODE:
-					document.documentElement.classList.remove('dark');
-					break
-				case DARK_MODE:
-					document.documentElement.classList.add('dark');
-					break
-				case AUTO_MODE:
-					if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-						document.documentElement.classList.add('dark');
-					} else {
-						document.documentElement.classList.remove('dark');
-					}
-			}
+		<script is:inline define:vars={{DARK_MODE, BANNER_HEIGHT_EXTEND, PAGE_WIDTH, configHue}}>
+			localStorage.setItem('theme', DARK_MODE);
+			document.documentElement.classList.add('dark');
 
 			// Load the hue from local storage
 			const hue = localStorage.getItem('hue') || configHue;
@@ -136,6 +123,31 @@ const bannerOffset =
 			let offset = Math.floor(window.innerHeight * (BANNER_HEIGHT_EXTEND / 100));
 			offset = offset - offset % 4;
 			document.documentElement.style.setProperty('--banner-height-extend', `${offset}px`);
+		</script>
+		<script is:inline>
+			(() => {
+				const dismissedKey = "__serveltIntroDismissed";
+				const internalNavigationKey = "__serveltInternalNavigation";
+				const internalNavigationWindow = 8000;
+				const navigation = performance.getEntriesByType?.("navigation")?.[0];
+				const navigationType = navigation?.type || "navigate";
+				let shouldSkip = navigationType === "back_forward";
+
+				try {
+					const marker = Number(sessionStorage.getItem(internalNavigationKey));
+					if (navigationType === "reload") {
+						sessionStorage.removeItem(internalNavigationKey);
+					} else if (Number.isFinite(marker) && Date.now() - marker < internalNavigationWindow) {
+						shouldSkip = true;
+						sessionStorage.removeItem(internalNavigationKey);
+					}
+				} catch {}
+
+				if (shouldSkip) {
+					window[dismissedKey] = true;
+					document.documentElement.classList.add("site-intro-skip");
+				}
+			})();
 		</script>
 		<style define:vars={{
 			configHue,
@@ -152,6 +164,20 @@ const bannerOffset =
 		  data-overlayscrollbars-initialize
 	>
 		<ConfigCarrier></ConfigCarrier>
+		<div id="site-entry-intro" class="site-entry-intro" aria-hidden="false">
+			<span id="site-entry-wash" class="site-entry-wash" aria-hidden="true"></span>
+			<button id="site-entry-trigger" class="site-entry-trigger" type="button" aria-label={`Enter ${siteConfig.title}`}>
+				<span class="site-entry-card">
+					<span class="site-entry-aura" aria-hidden="true"></span>
+					<span class="site-entry-flipper">
+						<span class="site-entry-avatar">
+							<ImageWrapper src={profileConfig.avatar || ""} alt="Profile Image of the Author" class="site-entry-avatar-image"></ImageWrapper>
+						</span>
+						<span class="site-entry-back" aria-hidden="true"></span>
+					</span>
+				</span>
+			</button>
+		</div>
 		<slot />
 
 		<!-- increase the page height during page transition to prevent the scrolling animation from jumping -->
@@ -192,7 +218,1315 @@ const bannerOffset =
 		@apply opacity-0 -translate-y-16
 	}
 }
+
+.site-intro-active,
+.site-intro-active body {
+	overflow: hidden;
+}
+
+.site-intro-skip .site-entry-intro {
+	display: none !important;
+}
+
+.site-entry-hidden-target {
+	opacity: 0;
+	transform: translate3d(0, 1.35rem, 0) scale(0.965);
+	transform-origin: center top;
+	filter: blur(12px);
+	animation: none !important;
+	transition: none !important;
+	will-change: opacity, transform, filter;
+}
+
+.site-intro-blank .home-shell::before,
+.site-intro-blank .archive-shell::before {
+	opacity: 0 !important;
+}
+
+.site-entry-intro {
+	position: fixed;
+	inset: 0;
+	z-index: 9999;
+	display: grid;
+	place-items: center;
+	overflow: hidden;
+	background:
+		radial-gradient(circle at 50% 42%, rgba(213, 166, 255, 0.22), transparent 17rem),
+		radial-gradient(circle at 18% 16%, rgba(174, 88, 255, 0.16), transparent 22rem),
+		radial-gradient(circle at 84% 78%, rgba(198, 132, 255, 0.12), transparent 24rem),
+		rgb(8 5 14 / 0.96);
+	backdrop-filter: blur(18px);
+	cursor: pointer;
+}
+
+.site-entry-intro::before {
+	content: "";
+	position: absolute;
+	inset: -20%;
+	background:
+		radial-gradient(circle, rgba(246, 228, 255, 0.72) 0 1px, transparent 1.8px) 12% 18% / 9rem 9rem,
+		radial-gradient(circle, rgba(202, 142, 255, 0.38) 0 1px, transparent 1.7px) 74% 28% / 12rem 12rem,
+		radial-gradient(circle, rgba(232, 202, 255, 0.3) 0 1px, transparent 1.6px) 42% 72% / 10rem 10rem;
+	opacity: 0.42;
+	animation: site-intro-stars 9s linear infinite;
+}
+
+.site-entry-intro::after {
+	content: "";
+	position: absolute;
+	inset: -12%;
+	background:
+		repeating-linear-gradient(
+			100deg,
+			transparent 0 1.2rem,
+			rgba(235, 210, 255, 0.12) 1.2rem 1.28rem,
+			transparent 1.28rem 2.4rem
+		);
+	mask-image: linear-gradient(90deg, transparent, black 28%, black 72%, transparent);
+	opacity: 0;
+	transform: translateX(-18%);
+	pointer-events: none;
+}
+
+.site-entry-intro.is-running {
+	pointer-events: none;
+	cursor: default;
+}
+
+.site-entry-intro.is-running .site-entry-aura {
+	animation: none;
+}
+
+.site-entry-wash {
+	position: absolute;
+	inset: -28vmax;
+	z-index: 1;
+	display: block;
+	border-radius: 50%;
+	background:
+		radial-gradient(circle at 50% 50%,
+			rgba(255, 248, 255, 0.58) 0 4%,
+			rgba(230, 188, 255, 0.44) 16%,
+			rgba(171, 82, 255, 0.34) 36%,
+			rgba(84, 28, 150, 0.2) 56%,
+			transparent 78%);
+	filter: blur(28px) brightness(1.1) saturate(1.16);
+	mix-blend-mode: screen;
+	opacity: 0;
+	pointer-events: none;
+	transform: scale(0.02);
+	transform-origin: center;
+	will-change: opacity, transform, filter;
+}
+
+.site-entry-trigger {
+	all: unset;
+	position: relative;
+	z-index: 3;
+	display: grid;
+	place-items: center;
+	width: clamp(15rem, 26vw, 19rem);
+	aspect-ratio: 1;
+	border-radius: 1.35rem;
+	cursor: pointer;
+	perspective: 1800px;
+	transform-style: preserve-3d;
+	animation: site-intro-pop 0.72s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+	transition: filter 0.18s ease;
+	will-change: opacity, filter;
+}
+
+.site-entry-trigger.is-tilt-ready,
+.site-entry-card.is-tilt-ready {
+	animation: none;
+}
+
+.site-entry-card {
+	--entry-rotate-x: 0deg;
+	--entry-rotate-y: 0deg;
+	--entry-pointer-x: 0px;
+	--entry-pointer-y: 0px;
+	--entry-image-x: 0px;
+	--entry-image-y: 0px;
+	--entry-inner-rotate-x: 0deg;
+	--entry-inner-rotate-y: 0deg;
+	--entry-lift-y: 0px;
+	--entry-translate-z: 0px;
+	--entry-scale: 1;
+	--entry-glow-x: 50%;
+	--entry-glow-y: 48%;
+	position: relative;
+	isolation: isolate;
+	display: grid;
+	place-items: center;
+	width: 100%;
+	height: 100%;
+	border-radius: inherit;
+	transform:
+		translate3d(var(--entry-pointer-x), calc(var(--entry-pointer-y) + var(--entry-lift-y)), 0)
+		rotateX(var(--entry-rotate-x))
+		rotateY(var(--entry-rotate-y))
+		translateZ(var(--entry-translate-z))
+		scale(var(--entry-scale));
+	transform-style: preserve-3d;
+	perspective-origin: 50% 48%;
+	transition: transform 0.14s cubic-bezier(0.18, 0.78, 0.18, 1), filter 0.2s ease;
+	will-change: transform, filter;
+}
+
+.site-entry-card.is-flipping::before,
+.site-entry-card.is-flipping::after {
+	opacity: 0;
+	transition: opacity 0.22s ease;
+}
+
+.site-entry-card.is-flipping {
+	--entry-rotate-x: 0deg;
+	--entry-rotate-y: 0deg;
+	--entry-pointer-x: 0px;
+	--entry-pointer-y: 0px;
+	--entry-lift-y: 0px;
+	--entry-translate-z: 0px;
+	--entry-scale: 1;
+	filter: none;
+	transition: none;
+}
+
+.site-entry-card.is-flipping .site-entry-flipper {
+	animation: none;
+}
+
+.site-entry-aura,
+.site-entry-card::before,
+.site-entry-card::after {
+	content: "";
+	position: absolute;
+	inset: -0.8rem;
+	border-radius: inherit;
+	pointer-events: none;
+}
+
+.site-entry-aura {
+	inset: -1.2rem;
+	border-radius: 2.25rem;
+	background:
+		radial-gradient(circle at 50% 42%, rgba(252, 241, 255, 0.32), transparent 42%),
+		radial-gradient(circle at 72% 18%, rgba(198, 116, 255, 0.36), transparent 42%),
+		conic-gradient(from 216deg, transparent, rgba(237, 214, 255, 0.48), transparent 34%, rgba(174, 88, 255, 0.36), transparent 70%);
+	filter: blur(18px);
+	opacity: 0.68;
+	animation: site-intro-orbit 7s linear infinite;
+	transition: inset 0.22s ease, opacity 0.22s ease, filter 0.22s ease;
+}
+
+.site-entry-flipper {
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	display: block;
+	border-radius: inherit;
+	transform:
+		translateZ(1.2rem)
+		rotateX(var(--entry-inner-rotate-x))
+		rotateY(var(--entry-inner-rotate-y));
+	transform-style: preserve-3d;
+	transform-origin: center;
+	-webkit-transform-style: preserve-3d;
+	transition: transform 0.14s cubic-bezier(0.18, 0.78, 0.18, 1);
+	will-change: transform;
+}
+
+.site-entry-card::before {
+	inset: -0.12rem;
+	border: 1px solid rgba(238, 216, 255, 0.42);
+	border-radius: inherit;
+	box-shadow:
+		0 1.5rem 4.6rem rgba(14, 4, 26, 0.6),
+		0 0 2.2rem rgba(214, 168, 255, 0.3),
+		0 0 5.4rem rgba(172, 92, 255, 0.18);
+	backface-visibility: hidden;
+	-webkit-backface-visibility: hidden;
+	transition: border-color 0.22s ease, box-shadow 0.22s ease;
+}
+
+.site-entry-card::after {
+	inset: 0.35rem -0.6rem -1.05rem;
+	border-radius: 50%;
+	background: radial-gradient(ellipse at 50% 55%, rgba(158, 78, 255, 0.28), transparent 66%);
+	filter: blur(18px);
+	opacity: 0.76;
+	transform: translateZ(-3.6rem) rotateX(72deg);
+	backface-visibility: hidden;
+	-webkit-backface-visibility: hidden;
+}
+
+.site-entry-avatar {
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	display: block;
+	overflow: hidden;
+	padding: 0.42rem;
+	border-radius: inherit;
+	background:
+		linear-gradient(135deg, rgba(255, 248, 255, 0.92), rgba(202, 137, 255, 0.56) 34%, rgba(92, 38, 153, 0.78)),
+		linear-gradient(160deg, rgba(32, 15, 52, 0.96), rgba(8, 4, 16, 0.98));
+	box-shadow:
+		0 0 0 1px rgba(244, 229, 255, 0.28),
+		0 1.35rem 4.8rem rgba(16, 5, 31, 0.76),
+		0 0 3.6rem rgba(194, 114, 255, 0.48),
+		inset 0 1px 0 rgba(255, 255, 255, 0.28),
+		inset 0 -1.2rem 2.4rem rgba(86, 33, 150, 0.18);
+	backface-visibility: hidden;
+	-webkit-backface-visibility: hidden;
+	transform: rotateY(0deg) translateZ(1.2px);
+	transform-style: preserve-3d;
+	transform-origin: center;
+	-webkit-transform-style: preserve-3d;
+}
+
+.site-entry-back {
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	display: block;
+	overflow: hidden;
+	border: 1px solid rgba(250, 239, 255, 0.5);
+	border-radius: inherit;
+	background:
+		radial-gradient(circle at 50% 46%, rgba(255, 249, 255, 0.74) 0 7%, rgba(232, 197, 255, 0.32) 20%, transparent 45%),
+		linear-gradient(132deg, rgba(255, 255, 255, 0.12), transparent 26%, rgba(255, 255, 255, 0.06) 58%, transparent 76%),
+		linear-gradient(145deg, rgba(27, 10, 49, 0.98), rgba(101, 36, 166, 0.92) 48%, rgba(15, 6, 29, 0.99));
+	box-shadow:
+		0 1.5rem 5.2rem rgba(15, 4, 30, 0.66),
+		0 0 3.2rem rgba(209, 152, 255, 0.48),
+		0 0 6.8rem rgba(176, 82, 255, 0.28),
+		inset 0 1px 0 rgba(255, 255, 255, 0.24),
+		inset 0 0 4.6rem rgba(214, 168, 255, 0.22);
+	opacity: 1;
+	visibility: visible;
+	pointer-events: none;
+	backface-visibility: hidden;
+	-webkit-backface-visibility: hidden;
+	transform: rotateY(180deg) translateZ(1.2px);
+	transform-style: preserve-3d;
+	transform-origin: center;
+	-webkit-transform-style: preserve-3d;
+	will-change: transform, opacity;
+}
+
+.site-entry-back::before {
+	content: "";
+	position: absolute;
+	inset: -8%;
+	border-radius: inherit;
+	background:
+		linear-gradient(118deg, transparent 20%, rgba(255, 255, 255, 0.18) 42%, transparent 60%),
+		repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0 1px, transparent 1px 0.78rem);
+	opacity: 0.52;
+	mix-blend-mode: screen;
+	transform: translateZ(0.46rem) translateX(-8%);
+}
+
+.site-entry-back::after {
+	content: "";
+	position: absolute;
+	inset: -4%;
+	border-radius: inherit;
+	background:
+		radial-gradient(circle at 50% 44%, rgba(255, 255, 255, 0.92), rgba(239, 214, 255, 0.5) 24%, rgba(188, 92, 255, 0.2) 54%, transparent 74%);
+	box-shadow:
+		0 0 2.4rem rgba(238, 212, 255, 0.68),
+		0 0 6.2rem rgba(178, 80, 255, 0.5),
+		inset 0 0 2rem rgba(255, 255, 255, 0.2);
+	opacity: 0.34;
+	transform: translateZ(0.82rem) scale(0.58);
+}
+
+.site-entry-card.is-flipping .site-entry-back::after {
+	animation: site-entry-back-core 0.98s cubic-bezier(0.16, 0.84, 0.18, 1) 0.48s both;
+}
+
+.site-entry-card.is-flipping .site-entry-back::before {
+	animation: site-entry-back-sheen 1.02s cubic-bezier(0.16, 0.84, 0.18, 1) 0.5s both;
+}
+
+.site-entry-avatar::after {
+	content: "";
+	position: absolute;
+	inset: 0.42rem;
+	z-index: 2;
+	border-radius: 0.98rem;
+	background:
+		radial-gradient(circle at var(--entry-glow-x) var(--entry-glow-y), rgba(255, 255, 255, 0.56), rgba(232, 202, 255, 0.22) 18%, transparent 44%),
+		linear-gradient(135deg, rgba(255, 255, 255, 0.18), transparent 36%, rgba(174, 88, 255, 0.16) 72%, transparent);
+	mix-blend-mode: screen;
+	opacity: 0.42;
+	pointer-events: none;
+	transform: translateZ(2.2rem);
+	transition: opacity 0.16s ease;
+}
+
+.site-entry-avatar-image {
+	position: relative;
+	z-index: 1;
+	width: 100%;
+	height: 100%;
+	border-radius: 0.98rem;
+	box-shadow: inset 0 0 2.2rem rgba(8, 5, 14, 0.28);
+	transform:
+		translate3d(var(--entry-image-x), var(--entry-image-y), 1.8rem)
+		scale(1.02);
+	transform-style: preserve-3d;
+	backface-visibility: hidden;
+	-webkit-backface-visibility: hidden;
+	transition: transform 0.18s cubic-bezier(0.18, 0.78, 0.18, 1), filter 0.18s ease;
+	will-change: transform;
+}
+
+.site-entry-card.is-flipping .site-entry-avatar {
+	pointer-events: none;
+}
+
+.site-entry-card.is-flipping .site-entry-back {
+	filter: brightness(1.04) saturate(1.1);
+}
+
+.site-entry-card.is-back-lit .site-entry-avatar,
+.site-entry-card.is-back-lit .site-entry-avatar * {
+	pointer-events: none !important;
+}
+
+.site-entry-card.is-back-lit .site-entry-back {
+	filter: brightness(1.18) saturate(1.16);
+}
+
+.site-entry-trigger:hover {
+	filter: brightness(1.08);
+}
+
+.site-entry-trigger:hover .site-entry-card {
+	--entry-lift-y: -0.34rem;
+	--entry-translate-z: 2.8rem;
+	--entry-scale: 1.055;
+}
+
+.site-entry-trigger:hover .site-entry-card:not(.is-pointer-active):not(.is-flipping) {
+	--entry-rotate-x: -7deg;
+	--entry-rotate-y: 11deg;
+	--entry-inner-rotate-x: -3deg;
+	--entry-inner-rotate-y: 5deg;
+}
+
+.site-entry-card.is-pointer-active {
+	filter:
+		drop-shadow(0 1.25rem 2.8rem rgba(15, 5, 28, 0.46))
+		drop-shadow(0 0 2.6rem rgba(198, 132, 255, 0.2));
+}
+
+.site-entry-trigger:hover .site-entry-aura {
+	inset: -2.1rem;
+	opacity: 1;
+	filter: blur(22px) brightness(1.42);
+}
+
+.site-entry-trigger:hover .site-entry-card::before {
+	border-color: rgba(248, 232, 255, 0.58);
+	box-shadow:
+		0 1.7rem 5rem rgba(14, 4, 26, 0.62),
+		0 0 3.2rem rgba(232, 202, 255, 0.48),
+		0 0 7.4rem rgba(178, 80, 255, 0.34);
+}
+
+.site-entry-trigger:hover .site-entry-avatar {
+	box-shadow:
+		0 0 0 1px rgba(248, 232, 255, 0.34),
+		0 1.2rem 4.6rem rgba(29, 10, 48, 0.78),
+		0 0 4.4rem rgba(214, 168, 255, 0.66),
+		inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+.site-entry-trigger:hover .site-entry-avatar::after {
+	opacity: 0.66;
+}
+
+.site-entry-intro.is-charging {
+	animation: site-intro-charge-bg 0.58s cubic-bezier(0.2, 0.72, 0.2, 1) forwards;
+}
+
+.site-entry-intro.is-charging::before {
+	animation:
+		site-intro-stars 1.3s linear infinite,
+		site-intro-stars-charge 0.58s ease-out forwards;
+}
+
+.site-entry-intro.is-charging::after {
+	animation: site-intro-streak 0.58s ease-out forwards;
+}
+
+.site-entry-intro.is-charging .site-entry-aura {
+	animation:
+		site-intro-orbit 0.72s linear infinite,
+		site-intro-aura-charge 0.58s ease-out forwards;
+}
+
+.site-entry-intro.is-charging .site-entry-trigger {
+	animation: site-intro-trigger-charge 0.58s cubic-bezier(0.18, 0.82, 0.22, 1) forwards;
+}
+
+.site-entry-intro.is-leaving {
+	pointer-events: none;
+	animation: site-intro-leave 1.18s cubic-bezier(0.18, 0.82, 0.2, 1) forwards;
+}
+
+.site-entry-intro.is-leaving::before {
+	animation: site-intro-star-scatter 1.08s cubic-bezier(0.18, 0.82, 0.2, 1) forwards;
+}
+
+.site-entry-intro.is-leaving::after {
+	animation: site-intro-slice 1.02s ease-out forwards;
+}
+
+.site-entry-intro.is-leaving .site-entry-aura {
+	animation: site-intro-aura-burst 1.08s cubic-bezier(0.16, 0.84, 0.18, 1) forwards;
+}
+
+.site-entry-intro.is-leaving .site-entry-trigger {
+	animation: site-intro-avatar-leave 1.12s cubic-bezier(0.14, 0.88, 0.16, 1) forwards;
+}
+
+@keyframes site-intro-stars {
+	from {
+		transform: translate3d(0, 0, 0);
+	}
+	to {
+		transform: translate3d(-3rem, 2rem, 0);
+	}
+}
+
+@keyframes site-intro-orbit {
+	to {
+		transform: rotate(1turn);
+	}
+}
+
+@keyframes site-entry-card-flip {
+	0% {
+		transform: translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg) scale(1);
+	}
+	24% {
+		transform: translate3d(0, -0.14rem, 4.4rem) rotateX(-2.5deg) rotateY(46deg) scale(1.035);
+	}
+	50% {
+		transform: translate3d(0, -0.2rem, 7rem) rotateX(-1deg) rotateY(92deg) scale(1.055);
+	}
+	72% {
+		transform: translate3d(0, -0.12rem, 4.6rem) rotateX(1.4deg) rotateY(142deg) scale(1.035);
+	}
+	100% {
+		transform: translate3d(0, 0, 1.2rem) rotateX(0deg) rotateY(180deg) scale(1.01);
+	}
+}
+
+@keyframes site-entry-back-glow {
+	0% {
+		opacity: 0.2;
+		transform: translateZ(0.4rem) scale(0.96);
+	}
+	52% {
+		opacity: 0.58;
+		transform: translateZ(0.7rem) scale(1);
+	}
+	100% {
+		opacity: 0.44;
+		transform: translateZ(0.7rem) scale(0.98);
+	}
+}
+
+@keyframes site-entry-back-core {
+	0% {
+		opacity: 0.28;
+		filter: blur(1px) brightness(1.05);
+		transform: translateZ(0.82rem) scale(0.72);
+	}
+	42% {
+		opacity: 0.86;
+		filter: blur(0) brightness(1.55);
+		transform: translateZ(0.95rem) scale(0.94);
+	}
+	100% {
+		opacity: 0.66;
+		filter: blur(0.4px) brightness(1.2);
+		transform: translateZ(0.86rem) scale(0.88);
+	}
+}
+
+@keyframes site-entry-back-sheen {
+	0% {
+		opacity: 0.2;
+		filter: brightness(0.95);
+	}
+	46% {
+		opacity: 0.78;
+		filter: brightness(1.28);
+	}
+	100% {
+		opacity: 0.58;
+		filter: brightness(1.04);
+	}
+}
+
+@keyframes site-entry-front-panel-flip {
+	0% {
+		opacity: 1;
+		visibility: visible;
+		filter: brightness(1);
+		transform: perspective(1050px) rotateY(0deg) translateZ(0.82rem);
+	}
+	62% {
+		opacity: 1;
+		visibility: visible;
+		filter: brightness(0.96);
+		transform: perspective(1050px) rotateY(76deg) translateZ(0.82rem);
+	}
+	63%,
+	100% {
+		opacity: 0;
+		visibility: hidden;
+		filter: brightness(0.9);
+		transform: perspective(1050px) rotateY(88deg) translateZ(0.82rem);
+	}
+}
+
+@keyframes site-entry-back-panel-flip {
+	0% {
+		opacity: 0;
+		visibility: hidden;
+		filter: brightness(0.95) saturate(1.08);
+		transform: perspective(1050px) rotateY(-92deg) translateZ(0.92rem) scale(0.98);
+	}
+	1% {
+		opacity: 1;
+		visibility: visible;
+		filter: brightness(0.95) saturate(1.08);
+	}
+	42% {
+		opacity: 1;
+		visibility: visible;
+		filter: brightness(1.08) saturate(1.16);
+		transform: perspective(1050px) rotateY(0deg) translateZ(1rem) scale(1);
+	}
+	72% {
+		opacity: 1;
+		filter: brightness(1.55) saturate(1.34);
+		transform: perspective(1050px) rotateY(0deg) translateZ(1.24rem) scale(1.1);
+	}
+	100% {
+		opacity: 0.9;
+		filter: brightness(2.45) saturate(1.5);
+		transform: perspective(1050px) rotateY(0deg) translateZ(1.42rem) scale(1.2);
+	}
+}
+
+@keyframes site-intro-pop {
+	from {
+		opacity: 0;
+		filter: blur(12px) brightness(0.7);
+		clip-path: inset(18% round 34%);
+	}
+	58% {
+		opacity: 1;
+		filter: blur(1px) brightness(1.14);
+		clip-path: inset(0 round 34%);
+	}
+	to {
+		opacity: 1;
+		filter: blur(0) brightness(1);
+		clip-path: inset(0 round 34%);
+	}
+}
+
+@keyframes site-intro-streak {
+	0% {
+		opacity: 0;
+		transform: translateX(-22%);
+	}
+	35% {
+		opacity: 1;
+	}
+	100% {
+		opacity: 0;
+		transform: translateX(24%);
+	}
+}
+
+@keyframes site-intro-charge-bg {
+	to {
+		background:
+			radial-gradient(circle at 50% 42%, rgba(239, 220, 255, 0.36), transparent 18rem),
+			radial-gradient(circle at 18% 16%, rgba(190, 106, 255, 0.24), transparent 24rem),
+			radial-gradient(circle at 84% 78%, rgba(211, 164, 255, 0.2), transparent 26rem),
+			rgb(11 6 19 / 0.97);
+	}
+}
+
+@keyframes site-intro-stars-charge {
+	to {
+		opacity: 0.78;
+		filter: blur(0.2px) brightness(1.35);
+		transform: scale(1.08) rotate(-2deg);
+	}
+}
+
+@keyframes site-intro-star-scatter {
+	0% {
+		opacity: 0.78;
+		transform: scale(1.08) rotate(-2deg);
+		filter: blur(0.2px) brightness(1.35);
+	}
+	62% {
+		opacity: 0.95;
+		filter: blur(0.5px) brightness(1.9);
+	}
+	100% {
+		opacity: 0;
+		transform: scale(1.35) rotate(8deg) translate3d(-4rem, 3rem, 0);
+		filter: blur(1.2px) brightness(2.15);
+	}
+}
+
+@keyframes site-intro-aura-charge {
+	to {
+		inset: -2.2rem;
+		opacity: 1;
+		filter: blur(16px) brightness(1.28);
+	}
+}
+
+@keyframes site-intro-aura-burst {
+	0% {
+		inset: -2.2rem;
+		opacity: 1;
+		filter: blur(16px) brightness(1.28);
+		transform: rotate(0deg) scale(1);
+	}
+	48% {
+		opacity: 1;
+		filter: blur(28px) brightness(2.35);
+	}
+	100% {
+		inset: -19rem;
+		opacity: 0;
+		filter: blur(46px) brightness(3.2);
+		transform: rotate(0.42turn) scale(1.45);
+	}
+}
+
+@keyframes site-intro-trigger-charge {
+	0% {
+		transform: scale(1);
+	}
+	55% {
+		transform: scale(1.1);
+	}
+	100% {
+		transform: scale(0.96);
+	}
+}
+
+@keyframes site-intro-slice {
+	0% {
+		opacity: 0;
+		transform: translateX(-28%) skewX(-10deg);
+	}
+	24% {
+		opacity: 1;
+	}
+	100% {
+		opacity: 0;
+		transform: translateX(34%) skewX(-10deg);
+	}
+}
+
+@keyframes site-intro-avatar-leave {
+	0% {
+		opacity: 1;
+		transform: translateY(0) scale(0.96);
+		filter: blur(0) brightness(1.18);
+	}
+	34% {
+		opacity: 0.98;
+		transform: translateY(-0.45rem) scale(1.85);
+		filter: blur(0.5px) brightness(1.85);
+	}
+	72% {
+		opacity: 0.42;
+		transform: translateY(-1.35rem) scale(4.9);
+		filter: blur(8px) brightness(2.5);
+	}
+	to {
+		opacity: 0;
+		transform: translateY(-1.8rem) scale(7.4);
+		filter: blur(18px) brightness(2.9);
+	}
+}
+
+@keyframes site-intro-leave {
+	0% {
+		opacity: 1;
+		clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+		filter: blur(0);
+	}
+	38% {
+		opacity: 1;
+		clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+		filter: blur(0) brightness(1.15);
+	}
+	100% {
+		opacity: 0;
+		clip-path: polygon(0 -22%, 100% 17%, 100% 27%, 0 -12%);
+		filter: blur(12px) brightness(1.75);
+		visibility: hidden;
+	}
+}
+
+@keyframes site-entry-element-land {
+	0% {
+		opacity: 0;
+		transform: translate3d(0, 1.35rem, 0) scale(0.965);
+		filter: blur(12px);
+	}
+	56% {
+		opacity: 1;
+		transform: translate3d(0, -0.18rem, 0) scale(1.012);
+		filter: blur(1.2px);
+	}
+	100% {
+		opacity: 1;
+		transform: translate3d(0, 0, 0) scale(1);
+		filter: blur(0);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.site-entry-intro,
+	.site-entry-intro::before,
+	.site-entry-intro::after,
+	.site-entry-trigger,
+	.site-entry-aura {
+		animation: none !important;
+		transition: none !important;
+	}
+}
 </style>
+
+<script is:inline>
+(() => {
+	const dismissedKey = "__serveltIntroDismissed";
+	const internalNavigationKey = "__serveltInternalNavigation";
+	const revealStepDelay = 34;
+	const revealDuration = 560;
+	const maxRevealTargets = 48;
+	const internalNavigationWindow = 8000;
+
+	function collectElements(selectors) {
+		return selectors.flatMap((selector) =>
+			Array.from(document.querySelectorAll(selector)),
+		);
+	}
+
+	function buildRevealTargets() {
+		if (document.querySelector(".about-page")) {
+			return [];
+		}
+
+			const baseSelectors = [
+				"#banner-wrapper",
+				"#navbar-wrapper",
+				"#sidebar",
+				"#swup-container > :not(main)",
+		];
+		const contentSelectors = [
+			".home-feature",
+			".home-section-head",
+			".home-post-row",
+			".archive-summary",
+			".archive-item",
+			"#post-container > *",
+		];
+
+		const seen = new Set();
+		const targets = [];
+
+		const pushElement = (element) => {
+			if (!(element instanceof HTMLElement)) return;
+			if (element.closest("#site-entry-intro")) return;
+			if (seen.has(element)) return;
+			seen.add(element);
+			targets.push(element);
+		};
+
+		collectElements(baseSelectors).forEach(pushElement);
+
+		const contentTargets = [];
+		collectElements(contentSelectors).forEach((element) => {
+			if (!(element instanceof HTMLElement)) return;
+			if (seen.has(element)) return;
+			contentTargets.push(element);
+		});
+
+		if (contentTargets.length > 0) {
+			contentTargets.forEach(pushElement);
+		} else {
+			collectElements(["#content-wrapper > *"]).forEach(pushElement);
+		}
+
+		return targets.slice(0, maxRevealTargets).map((element) => {
+			element.classList.add("site-entry-hidden-target");
+			element.style.opacity = "0";
+			element.style.transform = "translate3d(0, 1.35rem, 0) scale(0.965)";
+			element.style.filter = "blur(12px)";
+			return element;
+		});
+	}
+
+	function clearRevealTargets(targets) {
+		targets.forEach((element) => {
+			element.classList.remove("site-entry-hidden-target");
+			element.style.removeProperty("opacity");
+			element.style.removeProperty("transform");
+			element.style.removeProperty("filter");
+		});
+	}
+
+	function animateElement(element, keyframes, options) {
+		if (!element || typeof element.animate !== "function") return null;
+		return element.animate(keyframes, options);
+	}
+
+	function clampNumber(value, min, max) {
+		return Math.min(max, Math.max(min, value));
+	}
+
+	function initEntryTilt(overlay, trigger) {
+		if (!overlay || !trigger) return () => {};
+		const card = trigger.querySelector(".site-entry-card");
+		const flipper = trigger.querySelector(".site-entry-flipper");
+		const image = trigger.querySelector(".site-entry-avatar-image");
+		if (!(card instanceof HTMLElement)) return () => {};
+		if (!(flipper instanceof HTMLElement)) return () => {};
+		if (card.dataset.tiltBound === "true") return () => {};
+		card.dataset.tiltBound = "true";
+
+		const readyTimer = window.setTimeout(() => {
+			card.classList.add("is-tilt-ready");
+		}, 720);
+
+		const isInsideTrigger = (event, rect = trigger.getBoundingClientRect()) =>
+			event.clientX >= rect.left &&
+			event.clientX <= rect.right &&
+			event.clientY >= rect.top &&
+			event.clientY <= rect.bottom;
+
+		const resetTilt = () => {
+			card.classList.remove("is-pointer-active");
+			card.style.setProperty("--entry-rotate-x", "0deg");
+			card.style.setProperty("--entry-rotate-y", "0deg");
+			card.style.setProperty("--entry-pointer-x", "0px");
+			card.style.setProperty("--entry-pointer-y", "0px");
+			card.style.setProperty("--entry-image-x", "0px");
+			card.style.setProperty("--entry-image-y", "0px");
+			card.style.setProperty("--entry-inner-rotate-x", "0deg");
+			card.style.setProperty("--entry-inner-rotate-y", "0deg");
+			card.style.setProperty("--entry-glow-x", "50%");
+			card.style.setProperty("--entry-glow-y", "48%");
+			card.style.removeProperty("transform");
+			flipper.style.removeProperty("transform");
+			if (image instanceof HTMLElement) image.style.removeProperty("transform");
+		};
+
+		const onPointerMove = (event) => {
+			if (overlay.classList.contains("is-running")) return;
+			if (event.pointerType === "touch") return;
+
+			const rect = trigger.getBoundingClientRect();
+			if (!isInsideTrigger(event, rect)) {
+				resetTilt();
+				return;
+			}
+
+			const centerX = rect.left + rect.width / 2;
+			const centerY = rect.top + rect.height / 2;
+			const ratioX = clampNumber((event.clientX - centerX) / (rect.width * 0.62), -1, 1);
+			const ratioY = clampNumber((event.clientY - centerY) / (rect.height * 0.62), -1, 1);
+			const glowX = clampNumber(((event.clientX - rect.left) / rect.width) * 100, 6, 94);
+			const glowY = clampNumber(((event.clientY - rect.top) / rect.height) * 100, 6, 94);
+
+			const rotateX = -ratioY * 34;
+			const rotateY = ratioX * 46;
+			const moveX = ratioX * 11;
+			const moveY = ratioY * 9;
+			const imageX = ratioX * 24;
+			const imageY = ratioY * 18;
+			const innerRotateX = -ratioY * 10;
+			const innerRotateY = ratioX * 14;
+
+			card.classList.add("is-pointer-active");
+			card.style.setProperty("--entry-glow-x", `${glowX.toFixed(1)}%`);
+			card.style.setProperty("--entry-glow-y", `${glowY.toFixed(1)}%`);
+			card.style.setProperty("--entry-rotate-x", `${rotateX.toFixed(2)}deg`);
+			card.style.setProperty("--entry-rotate-y", `${rotateY.toFixed(2)}deg`);
+			card.style.setProperty("--entry-pointer-x", `${moveX.toFixed(2)}px`);
+			card.style.setProperty("--entry-pointer-y", `${moveY.toFixed(2)}px`);
+			card.style.setProperty("--entry-image-x", `${imageX.toFixed(2)}px`);
+			card.style.setProperty("--entry-image-y", `${imageY.toFixed(2)}px`);
+			card.style.setProperty("--entry-inner-rotate-x", `${innerRotateX.toFixed(2)}deg`);
+			card.style.setProperty("--entry-inner-rotate-y", `${innerRotateY.toFixed(2)}deg`);
+
+			card.style.transform = [
+				`translate3d(${moveX.toFixed(2)}px, ${(moveY - 7).toFixed(2)}px, 0)`,
+				`rotateX(${rotateX.toFixed(2)}deg)`,
+				`rotateY(${rotateY.toFixed(2)}deg)`,
+				"translateZ(48px)",
+				"scale(1.075)",
+			].join(" ");
+			flipper.style.transform = [
+				"translateZ(26px)",
+				`rotateX(${innerRotateX.toFixed(2)}deg)`,
+				`rotateY(${innerRotateY.toFixed(2)}deg)`,
+			].join(" ");
+			if (image instanceof HTMLElement) {
+				image.style.transform = `translate3d(${imageX.toFixed(2)}px, ${imageY.toFixed(2)}px, 32px) scale(1.055)`;
+			}
+		};
+
+		trigger.addEventListener("pointermove", onPointerMove, { passive: true });
+		trigger.addEventListener("mousemove", onPointerMove, { passive: true });
+		card.addEventListener("pointermove", onPointerMove, { passive: true });
+		card.addEventListener("mousemove", onPointerMove, { passive: true });
+		overlay.addEventListener("pointermove", onPointerMove, { passive: true });
+		overlay.addEventListener("mousemove", onPointerMove, { passive: true });
+		document.addEventListener("pointermove", onPointerMove, { passive: true, capture: true });
+		document.addEventListener("mousemove", onPointerMove, { passive: true, capture: true });
+		window.addEventListener("pointermove", onPointerMove, { passive: true });
+		window.addEventListener("mousemove", onPointerMove, { passive: true });
+		trigger.addEventListener("pointercancel", resetTilt);
+
+		return () => {
+			window.clearTimeout(readyTimer);
+			trigger.removeEventListener("pointermove", onPointerMove);
+			trigger.removeEventListener("mousemove", onPointerMove);
+			card.removeEventListener("pointermove", onPointerMove);
+			card.removeEventListener("mousemove", onPointerMove);
+			overlay.removeEventListener("pointermove", onPointerMove);
+			overlay.removeEventListener("mousemove", onPointerMove);
+			document.removeEventListener("pointermove", onPointerMove, { capture: true });
+			document.removeEventListener("mousemove", onPointerMove, { capture: true });
+			window.removeEventListener("pointermove", onPointerMove);
+			window.removeEventListener("mousemove", onPointerMove);
+			trigger.removeEventListener("pointercancel", resetTilt);
+			card.classList.remove("is-tilt-ready");
+			card.classList.remove("is-pointer-active");
+			delete card.dataset.tiltBound;
+			card.style.removeProperty("transform");
+			flipper.style.removeProperty("transform");
+			if (image instanceof HTMLElement) image.style.removeProperty("transform");
+			[
+				"--entry-rotate-x",
+				"--entry-rotate-y",
+				"--entry-pointer-x",
+				"--entry-pointer-y",
+				"--entry-image-x",
+				"--entry-image-y",
+				"--entry-inner-rotate-x",
+				"--entry-inner-rotate-y",
+				"--entry-glow-x",
+				"--entry-glow-y",
+			].forEach((property) => card.style.removeProperty(property));
+		};
+	}
+
+	function markInternalNavigation(event) {
+		const link = event.target?.closest?.("a[href]");
+		if (!link || link.target || link.hasAttribute("download")) return;
+
+		const targetUrl = new URL(link.href, window.location.href);
+		if (targetUrl.origin !== window.location.origin) return;
+		if (targetUrl.pathname === window.location.pathname && targetUrl.hash) return;
+
+		try {
+			sessionStorage.setItem(internalNavigationKey, String(Date.now()));
+			window.setTimeout(() => {
+				const marker = Number(sessionStorage.getItem(internalNavigationKey));
+				if (Number.isFinite(marker) && Date.now() - marker >= internalNavigationWindow) {
+					sessionStorage.removeItem(internalNavigationKey);
+				}
+			}, internalNavigationWindow + 200);
+		} catch {}
+	}
+
+	function shouldSkipIntro() {
+		if (window[dismissedKey]) return true;
+
+		const navigation = performance.getEntriesByType?.("navigation")?.[0];
+		const navigationType = navigation?.type || "navigate";
+
+		if (navigationType === "reload") {
+			try {
+				sessionStorage.removeItem(internalNavigationKey);
+			} catch {}
+			return false;
+		}
+
+		try {
+			const marker = Number(sessionStorage.getItem(internalNavigationKey));
+			sessionStorage.removeItem(internalNavigationKey);
+			if (Number.isFinite(marker) && Date.now() - marker < internalNavigationWindow) {
+				window[dismissedKey] = true;
+				return true;
+			}
+		} catch {}
+
+		if (navigationType === "back_forward") {
+			window[dismissedKey] = true;
+			return true;
+		}
+
+		return false;
+	}
+
+	function playContentReveal(targets) {
+		const animations = targets.map((element, index) => {
+			const animation = animateElement(
+				element,
+				[
+					{
+						opacity: 0,
+						transform: "translate3d(0, 1.35rem, 0) scale(0.965)",
+						filter: "blur(12px)",
+					},
+					{
+						opacity: 1,
+						transform: "translate3d(0, -0.16rem, 0) scale(1.01)",
+						filter: "blur(1px)",
+						offset: 0.58,
+					},
+					{
+						opacity: 1,
+						transform: "translate3d(0, 0, 0) scale(1)",
+						filter: "blur(0)",
+					},
+				],
+				{
+					delay: index * revealStepDelay,
+					duration: revealDuration,
+					easing: "cubic-bezier(0.15, 0.88, 0.18, 1)",
+					fill: "both",
+				},
+			);
+
+			if (!animation) {
+				element.style.opacity = "1";
+				element.style.transform = "translate3d(0, 0, 0) scale(1)";
+				element.style.filter = "blur(0)";
+			}
+
+			return animation;
+		});
+
+		window.setTimeout(() => {
+			animations.forEach((animation) => animation?.cancel());
+			clearRevealTargets(targets);
+			document.documentElement.classList.remove("site-intro-blank");
+		}, targets.length * revealStepDelay + revealDuration + 180);
+	}
+
+	function initSiteIntro() {
+		const overlay = document.getElementById("site-entry-intro");
+		if (!overlay) return;
+
+		if (shouldSkipIntro()) {
+			overlay.remove();
+			document.documentElement.classList.remove("site-intro-active");
+			return;
+		}
+
+		document.documentElement.classList.add("site-intro-active");
+		const entryTrigger = document.getElementById("site-entry-trigger");
+		const cleanupEntryTilt =
+			entryTrigger instanceof HTMLElement ? initEntryTilt(overlay, entryTrigger) : () => {};
+
+		const closeIntro = () => {
+			if (overlay.classList.contains("is-running")) return;
+
+			const revealTargets = buildRevealTargets();
+			const trigger = entryTrigger;
+			const entryCard = trigger?.querySelector?.(".site-entry-card");
+			const flipper = entryCard?.querySelector?.(".site-entry-flipper");
+			const aura = overlay.querySelector(".site-entry-aura");
+			const wash = document.getElementById("site-entry-wash");
+			const flipDuration = 1180;
+			const bloomStart = 540;
+			const exitStart = 1240;
+			const overlayFadeStart = 1780;
+			const removeAt = 2660;
+
+			window[dismissedKey] = true;
+			document.documentElement.classList.add("site-intro-blank");
+			overlay.classList.add("is-running");
+			overlay.dispatchEvent(new CustomEvent("intro:start"));
+			overlay.setAttribute("aria-hidden", "true");
+			document.removeEventListener("keydown", onKeydown);
+			cleanupEntryTilt();
+
+			if (entryCard instanceof HTMLElement) {
+				entryCard.classList.add("is-flipping");
+				entryCard.classList.remove("is-pointer-active");
+				entryCard.style.setProperty("--entry-rotate-x", "0deg");
+				entryCard.style.setProperty("--entry-rotate-y", "0deg");
+				entryCard.style.setProperty("--entry-pointer-x", "0px");
+				entryCard.style.setProperty("--entry-pointer-y", "0px");
+				entryCard.style.setProperty("--entry-image-x", "0px");
+				entryCard.style.setProperty("--entry-image-y", "0px");
+				entryCard.style.setProperty("--entry-lift-y", "0px");
+				entryCard.style.setProperty("--entry-translate-z", "0px");
+				entryCard.style.setProperty("--entry-scale", "1");
+			}
+
+			animateElement(
+				flipper,
+				[
+					{ transform: "translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg) scale(1)" },
+					{
+						transform: "translate3d(0, -0.1rem, 4.2rem) rotateX(-2.4deg) rotateY(46deg) scale(1.015)",
+						offset: 0.28,
+					},
+					{
+						transform: "translate3d(0, -0.13rem, 5.8rem) rotateX(-1deg) rotateY(90deg) scale(1.024)",
+						offset: 0.5,
+					},
+					{
+						transform: "translate3d(0, -0.08rem, 4rem) rotateX(1.2deg) rotateY(136deg) scale(1.014)",
+						offset: 0.72,
+					},
+					{ transform: "translate3d(0, 0, 0.9rem) rotateX(0deg) rotateY(180deg) scale(1)" },
+				],
+				{
+					duration: flipDuration,
+					easing: "cubic-bezier(0.26, 0.72, 0.18, 1)",
+					fill: "forwards",
+				},
+			);
+			window.setTimeout(() => {
+				if (entryCard instanceof HTMLElement) entryCard.classList.add("is-back-lit");
+			}, bloomStart);
+
+			animateElement(
+				trigger,
+				[
+					{
+						opacity: 1,
+						transform: "translate3d(0, 0, 0) scale(1)",
+					},
+					{
+						opacity: 0.95,
+						transform: "translate3d(0, -0.08rem, 0) scale(1.03)",
+						offset: 0.28,
+					},
+					{
+						opacity: 0.38,
+						transform: "translate3d(0, -0.28rem, 0) scale(0.98)",
+						offset: 0.76,
+					},
+					{
+						opacity: 0,
+						transform: "translate3d(0, -0.42rem, 0) scale(0.92)",
+					},
+				],
+				{
+					delay: exitStart,
+					duration: 860,
+					easing: "cubic-bezier(0.18, 0.78, 0.18, 1)",
+					fill: "forwards",
+				},
+			);
+
+			animateElement(
+				wash,
+				[
+					{ opacity: 0, transform: "scale(0.03)" },
+					{ opacity: 0.68, transform: "scale(0.46)", offset: 0.34 },
+					{ opacity: 0.34, transform: "scale(1.18)", offset: 0.72 },
+					{ opacity: 0, transform: "scale(1.68)" },
+				],
+				{
+					delay: exitStart - 80,
+					duration: 1220,
+					easing: "cubic-bezier(0.18, 0.82, 0.18, 1)",
+					fill: "forwards",
+				},
+			);
+
+			animateElement(
+				aura,
+				[
+					{ opacity: 0.78, transform: "scale(1) rotate(0deg)" },
+					{ opacity: 0.92, transform: "scale(1.16) rotate(18deg)", offset: 0.34 },
+					{ opacity: 0.42, transform: "scale(1.72) rotate(82deg)", offset: 0.72 },
+					{ opacity: 0, transform: "scale(2.34) rotate(132deg)" },
+				],
+				{
+					delay: bloomStart,
+					duration: 1700,
+					easing: "cubic-bezier(0.16, 0.84, 0.18, 1)",
+					fill: "forwards",
+				},
+			);
+
+			animateElement(
+				overlay,
+				[
+					{ opacity: 1 },
+					{ opacity: 0.96, offset: 0.3 },
+					{ opacity: 0.42, offset: 0.72 },
+					{ opacity: 0 },
+				],
+				{
+					delay: overlayFadeStart,
+					duration: 720,
+					easing: "cubic-bezier(0.22, 0.72, 0.2, 1)",
+					fill: "forwards",
+				},
+			);
+
+			window.setTimeout(() => {
+				document.documentElement.classList.remove("site-intro-active");
+				overlay.remove();
+				playContentReveal(revealTargets);
+			}, removeAt);
+		};
+
+		const onKeydown = (event) => {
+			if (event.key === "Enter" || event.key === " " || event.key === "Escape") {
+				event.preventDefault();
+				closeIntro();
+				document.removeEventListener("keydown", onKeydown);
+			}
+		};
+
+		overlay.addEventListener("click", closeIntro, { once: true });
+		document.addEventListener("keydown", onKeydown);
+	}
+
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", initSiteIntro, { once: true });
+	} else {
+		initSiteIntro();
+	}
+
+	document.addEventListener("click", markInternalNavigation, true);
+})();
+</script>
 
 <script>
 import 'overlayscrollbars/overlayscrollbars.css';
@@ -261,6 +1595,7 @@ const bannerEnabled = !!document.getElementById('banner-wrapper')
 function setClickOutsideToClose(panel: string, ignores: string[]) {
 	document.addEventListener("click", event => {
 		let panelDom = document.getElementById(panel);
+		if (!panelDom) return;
 		let tDom = event.target;
 		if (!(tDom instanceof Node)) return;		// Ensure the event target is an HTML Node
 		for (let ig of ignores) {
@@ -272,7 +1607,6 @@ function setClickOutsideToClose(panel: string, ignores: string[]) {
 		panelDom!.classList.add("float-panel-closed");
 	});
 }
-setClickOutsideToClose("display-setting", ["display-setting", "display-settings-switch"])
 setClickOutsideToClose("nav-menu-panel", ["nav-menu-panel", "nav-menu-switch"])
 setClickOutsideToClose("search-panel", ["search-panel", "search-bar", "search-switch"])
 
@@ -363,11 +1697,591 @@ function showBanner() {
 	banner.classList.remove('opacity-0', 'scale-105');
 }
 
+let aboutMotionCleanup: (() => void) | null = null;
+
+function initAboutMotion() {
+	if (aboutMotionCleanup) {
+		aboutMotionCleanup();
+		aboutMotionCleanup = null;
+	}
+
+	const root = document.documentElement;
+	const page = document.querySelector('.about-page') as HTMLElement | null;
+	const mainbox = document.querySelector('.about-mainbox') as HTMLElement | null;
+	const avatar = mainbox?.querySelector('.about-avatar') as HTMLElement | null;
+	const copy = mainbox?.querySelector('.about-copy') as HTMLElement | null;
+	const content = document.querySelector('.about-content') as HTMLElement | null;
+	const liveStack = document.querySelector('.about-live-stack') as HTMLElement | null;
+	const achievements = document.querySelector('.about-achievements') as HTMLElement | null;
+	root.classList.toggle('about-motion-page', !!page);
+	root.classList.remove('about-js-motion-ready');
+	root.classList.remove('about-scroll-jacking');
+	root.classList.remove('about-motion-running');
+	root.classList.remove('about-motion-complete');
+	if (!page || !mainbox || !avatar || !copy || !content || !liveStack || !achievements) return;
+
+	const reduceMotion = false;
+	const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
+	const easeOutCubic = (value: number) => 1 - Math.pow(1 - value, 3);
+	const easeInOutCubic = (value: number) =>
+		value < 0.5 ? 4 * value * value * value : 1 - Math.pow(-2 * value + 2, 3) / 2;
+	let frame = 0;
+	let introCurrentScroll = 0;
+	let introTargetScroll = 0;
+	let introScrollVelocity = 0;
+	let introDone = reduceMotion;
+	let introDistance = 1200;
+	let introAutoActive = false;
+	let introAutoFromScroll = 0;
+	let introAutoToScroll = 0;
+	let introAutoStartTime = 0;
+	let introAutoDuration = 0;
+	let lastLeakedScrollTop = 0;
+	let lastTouchY: number | null = null;
+	const bodyScrollInstance = document.body ? OverlayScrollbars(document.body) : undefined;
+	const bodyScrollElements = bodyScrollInstance?.elements();
+	const scrollOffsetElement =
+		bodyScrollElements?.scrollOffsetElement ||
+		document.scrollingElement ||
+		document.documentElement;
+	const scrollEventElement = bodyScrollElements?.scrollEventElement || document;
+	const scrollLockElements = Array.from(new Set(
+		[
+			document.documentElement,
+			document.body,
+			scrollOffsetElement,
+			bodyScrollElements?.viewport,
+			bodyScrollElements?.content,
+		].filter((element): element is HTMLElement => element instanceof HTMLElement),
+	));
+	const storedScrollLocks = new Map<HTMLElement, Partial<CSSStyleDeclaration>>();
+	const handledInputEvents = new WeakSet<Event>();
+	const readScrollTop = () => {
+		const values = [
+			window.scrollY,
+			window.pageYOffset,
+			document.documentElement.scrollTop,
+			document.body?.scrollTop,
+			scrollOffsetElement?.scrollTop,
+			bodyScrollElements?.viewport?.scrollTop,
+			bodyScrollElements?.content?.scrollTop,
+		];
+
+		return values.reduce<number>((max, value) => {
+			const numericValue = Number(value);
+			return Number.isFinite(numericValue) ? Math.max(max, numericValue) : max;
+		}, 0);
+	};
+	const writeScrollTop = (value: number) => {
+		if (scrollOffsetElement) scrollOffsetElement.scrollTop = value;
+		if (bodyScrollElements?.viewport) bodyScrollElements.viewport.scrollTop = value;
+		if (document.scrollingElement) document.scrollingElement.scrollTop = value;
+		document.documentElement.scrollTop = value;
+		if (document.body) document.body.scrollTop = value;
+		window.scrollTo({ top: value, left: 0, behavior: 'auto' });
+	};
+	const markInputEvent = (event: Event) => {
+		if (handledInputEvents.has(event)) return false;
+		handledInputEvents.add(event);
+		return true;
+	};
+	const setScrollContainerLock = (locked: boolean) => {
+		scrollLockElements.forEach((element) => {
+			if (locked) {
+				if (!storedScrollLocks.has(element)) {
+					storedScrollLocks.set(element, {
+						overflow: element.style.overflow,
+						overflowX: element.style.overflowX,
+						overflowY: element.style.overflowY,
+						overscrollBehavior: element.style.overscrollBehavior,
+						touchAction: element.style.touchAction,
+					});
+				}
+				element.style.overflow = 'hidden';
+				element.style.overflowX = 'hidden';
+				element.style.overflowY = 'hidden';
+				element.style.overscrollBehavior = 'none';
+				element.style.touchAction = 'none';
+				return;
+			}
+
+			const previous = storedScrollLocks.get(element);
+			if (!previous) return;
+			element.style.overflow = previous.overflow || '';
+			element.style.overflowX = previous.overflowX || '';
+			element.style.overflowY = previous.overflowY || '';
+			element.style.overscrollBehavior = previous.overscrollBehavior || '';
+			element.style.touchAction = previous.touchAction || '';
+			storedScrollLocks.delete(element);
+		});
+	};
+	const timelineItems = Array.from(content.querySelectorAll('.about-stats, .about-intro-card, .about-timeline-section, .about-achievements h2, .about-achievements .row')) as HTMLElement[];
+	const revealedTimelineProgress = new WeakMap<HTMLElement, number>();
+
+	const getMaxPageWidth = () => {
+		const rootStyle = window.getComputedStyle(document.documentElement);
+		const rootFontSize = parseFloat(rootStyle.fontSize) || 16;
+		const pageWidthRem = parseFloat(rootStyle.getPropertyValue('--page-width')) || 75;
+		return pageWidthRem * rootFontSize;
+	};
+
+	const setMotionMode = () => {
+		const isRunning = !introDone && !reduceMotion;
+		root.classList.toggle('about-scroll-jacking', isRunning);
+		root.classList.toggle('about-motion-running', isRunning);
+		root.classList.toggle('about-motion-complete', !isRunning);
+		setScrollContainerLock(isRunning);
+	};
+
+	const resetLiveItems = () => {
+		timelineItems.forEach((item) => {
+			item.style.removeProperty("opacity");
+			item.style.removeProperty("transform");
+			item.style.removeProperty("filter");
+		});
+		[
+			'--about-main-left',
+			'--about-main-top',
+			'--about-main-width',
+			'--about-main-height',
+			'--about-main-radius',
+			'--about-main-padding',
+			'--about-main-tilt',
+			'--about-main-scale',
+			'--about-main-glow-opacity',
+			'--about-main-glow-scale',
+			'--about-content-width',
+			'--about-content-top',
+			'--about-content-opacity',
+			'--about-content-y',
+			'--about-live-left',
+			'--about-live-top',
+			'--about-live-width',
+			'--about-live-height',
+			'--about-live-opacity',
+			'--about-live-y',
+			'--about-live-scale',
+			].forEach((name) => page.style.removeProperty(name));
+		content.style.removeProperty('pointer-events');
+		content.style.removeProperty('visibility');
+		avatar.style.removeProperty('--about-avatar-x');
+		avatar.style.removeProperty('--about-avatar-y');
+		avatar.style.removeProperty('--about-avatar-scale');
+		avatar.style.removeProperty('--about-avatar-rx');
+		avatar.style.removeProperty('--about-avatar-ry');
+		copy.style.removeProperty('--about-copy-x');
+		copy.style.removeProperty('--about-copy-y');
+		copy.style.removeProperty('--about-copy-scale');
+		setScrollContainerLock(false);
+		root.classList.remove('about-motion-page');
+		root.classList.remove('about-js-motion-ready');
+		root.classList.remove('about-scroll-jacking');
+		root.classList.remove('about-motion-running');
+		root.classList.remove('about-motion-complete');
+	};
+
+	const setLiveItemState = (item: HTMLElement, progress: number, index: number, persist = true) => {
+		const previousProgress = persist ? revealedTimelineProgress.get(item) ?? 0 : 0;
+		const stableProgress = clamp(Math.max(progress, previousProgress), 0, 1);
+		if (persist) {
+			revealedTimelineProgress.set(item, stableProgress);
+		}
+		const eased = easeOutCubic(stableProgress);
+		const driftY = (1 - eased) * 28;
+		const driftX = (index % 2 === 0 ? -3 : 3) * (1 - eased);
+		const rotate = (index % 2 === 0 ? -0.65 : 0.65) * (1 - eased);
+		const scale = 0.97 + eased * 0.03;
+		item.style.opacity = eased.toFixed(3);
+		item.style.transform = `translate3d(${driftX.toFixed(2)}px, ${driftY.toFixed(2)}px, 0) scale(${scale.toFixed(3)}) rotateX(${rotate.toFixed(2)}deg)`;
+		item.style.filter = `blur(${((1 - eased) * 6).toFixed(2)}px)`;
+	};
+
+	timelineItems.forEach((item) => {
+		item.style.opacity = "0";
+		item.style.transform = "translate3d(0, 2.2rem, 0) scale(0.97) rotateX(3deg)";
+		item.style.filter = "blur(10px)";
+	});
+
+	const updateTimelineRows = (revealProgress: number) => {
+		if (reduceMotion) {
+			timelineItems.forEach((item) => {
+				revealedTimelineProgress.set(item, 1);
+				item.style.opacity = "1";
+				item.style.transform = "translate3d(0, 0, 0) scale(1)";
+				item.style.filter = "blur(0)";
+			});
+			return;
+		}
+
+		if (!introDone) {
+			timelineItems.forEach((item, index) => {
+				const delay = Math.min(index * 0.018, 0.22);
+				const progress = clamp((revealProgress - delay) / 0.5, 0, 1);
+				setLiveItemState(item, progress, index, false);
+			});
+			return;
+		}
+
+		const viewportHeight = window.innerHeight;
+		const startLine = viewportHeight * 1.08;
+		const endLine = viewportHeight * 0.8;
+
+		timelineItems.forEach((item, index) => {
+			const rect = item.getBoundingClientRect();
+			const baseRaw = clamp((startLine - rect.top) / Math.max(1, startLine - endLine), 0, 1);
+			const delay = Math.min(index * 0.0025, 0.035);
+			const progress = clamp((baseRaw - delay) / 0.28, 0, 1);
+			setLiveItemState(item, progress, index);
+		});
+	};
+
+	const settleIntroIfComplete = () => {
+		if (introTargetScroll >= introDistance - 1 && introCurrentScroll >= introDistance - 1.25) {
+			introTargetScroll = introDistance;
+			introCurrentScroll = introDistance;
+			introScrollVelocity = 0;
+			introAutoActive = false;
+			introDone = true;
+			lastLeakedScrollTop = 0;
+			lastTouchY = null;
+			writeScrollTop(0);
+			return true;
+		}
+
+		return false;
+	};
+
+	const smoothIntroProgress = () => {
+		if (reduceMotion || introDone || introAutoActive) return false;
+
+		const diff = introTargetScroll - introCurrentScroll;
+		introScrollVelocity = (introScrollVelocity + diff * 0.082) * 0.88;
+		if (Math.abs(diff) < 0.45 && Math.abs(introScrollVelocity) < 0.45) {
+			introCurrentScroll = introTargetScroll;
+		} else {
+			introCurrentScroll = clamp(introCurrentScroll + introScrollVelocity, 0, introDistance);
+		}
+
+		settleIntroIfComplete();
+		return Math.abs(introTargetScroll - introCurrentScroll) > 0.45 || Math.abs(introScrollVelocity) > 0.45;
+	};
+
+	const startIntroAutoScroll = (deltaY: number) => {
+		const direction = Math.sign(deltaY);
+		if (reduceMotion || introDone || !direction) {
+			requestMotionUpdate();
+			return false;
+		}
+
+		const destination = direction > 0 ? introDistance : 0;
+		if (introAutoActive && Math.abs(introAutoToScroll - destination) < 1) {
+			requestMotionUpdate();
+			return true;
+		}
+
+		if (Math.abs(destination - introCurrentScroll) < 2) {
+			requestMotionUpdate();
+			return false;
+		}
+
+		introAutoFromScroll = introCurrentScroll;
+		introAutoToScroll = destination;
+		introAutoStartTime = performance.now();
+		const distanceRatio = clamp(
+			Math.abs(introAutoToScroll - introAutoFromScroll) / Math.max(1, introDistance),
+			0,
+			1,
+		);
+		introAutoDuration = clamp(760 + distanceRatio * 900, 860, 1660);
+		introTargetScroll = destination;
+		introScrollVelocity = 0;
+		introAutoActive = true;
+		requestMotionUpdate();
+		return true;
+	};
+
+	const advanceIntroAutoScroll = () => {
+		if (!introAutoActive || reduceMotion || introDone) return false;
+
+		const elapsed = performance.now() - introAutoStartTime;
+		const progress = clamp(elapsed / Math.max(1, introAutoDuration), 0, 1);
+		const eased = easeInOutCubic(progress);
+		introCurrentScroll = clamp(
+			introAutoFromScroll + (introAutoToScroll - introAutoFromScroll) * eased,
+			0,
+			introDistance,
+		);
+		introTargetScroll = introAutoToScroll;
+		introScrollVelocity = 0;
+
+		if (progress >= 1) {
+			introCurrentScroll = introAutoToScroll;
+			introAutoActive = false;
+			settleIntroIfComplete();
+			return false;
+		}
+
+		return true;
+	};
+
+	const absorbLeakedNativeScroll = () => {
+		if (reduceMotion || introDone) return false;
+
+		const leakedScrollTop = readScrollTop();
+		if (leakedScrollTop <= 1) {
+			lastLeakedScrollTop = 0;
+			return false;
+		}
+
+		const nativeDelta =
+			lastLeakedScrollTop <= 1 ? leakedScrollTop : leakedScrollTop - lastLeakedScrollTop;
+		lastLeakedScrollTop = leakedScrollTop;
+		writeScrollTop(0);
+
+		if (Math.abs(nativeDelta) < 0.5) return false;
+
+		return startIntroAutoScroll(nativeDelta);
+	};
+
+	const updateMotion = () => {
+		frame = 0;
+		const viewportHeight = window.innerHeight;
+		const viewportWidth = window.innerWidth;
+		const isNarrow = viewportWidth <= 900;
+		const sidePadding = isNarrow ? 12 : 24;
+		const compactWidth = Math.min(getMaxPageWidth(), viewportWidth - sidePadding * 2);
+		const compactLeft = Math.max(0, (viewportWidth - compactWidth) / 2);
+		const compactTop = isNarrow ? 72 : 82;
+		const compactHeight = isNarrow ? clamp(viewportHeight * 0.5, 390, 500) : 236;
+		const liveGap = isNarrow ? 10 : 12;
+		introDistance = Math.max(viewportHeight * 1.42, isNarrow ? 980 : 1240);
+		introCurrentScroll = clamp(introCurrentScroll, 0, introDistance);
+		introTargetScroll = clamp(introTargetScroll, 0, introDistance);
+		const autoScrollActive = advanceIntroAutoScroll();
+		const absorbedNativeScroll = autoScrollActive ? false : absorbLeakedNativeScroll();
+		const shouldContinueIntro = autoScrollActive || absorbedNativeScroll || smoothIntroProgress();
+		setMotionMode();
+		page.style.setProperty('--about-content-width', `${compactWidth.toFixed(2)}px`);
+		page.style.setProperty('--about-content-top', `${compactTop.toFixed(2)}px`);
+
+		if (!introDone && Math.abs(readScrollTop()) > 1) {
+			writeScrollTop(0);
+		}
+
+		const mainRawProgress = reduceMotion ? 1 : clamp(introCurrentScroll / Math.max(1, introDistance), 0, 1);
+		const mainProgress = reduceMotion ? 1 : easeOutCubic(mainRawProgress);
+		const intro = 1 - mainProgress;
+		const revealRawProgress = reduceMotion ? 1 : clamp((mainRawProgress - 0.12) / 0.58, 0, 1);
+		const revealProgress = easeOutCubic(revealRawProgress);
+		const contentProgress = reduceMotion || introDone ? 1 : clamp((mainRawProgress - 0.78) / 0.22, 0, 1);
+		const mainTop = compactTop * mainProgress;
+		const mainLeft = compactLeft * mainProgress;
+		const mainWidth = viewportWidth + (compactWidth - viewportWidth) * mainProgress;
+		const mainHeight = viewportHeight + (compactHeight - viewportHeight) * mainProgress;
+		const mainRadius = mainProgress * 0.95;
+		const mainPadding = isNarrow ? 1.15 + intro * 0.9 : 1.65 + intro * 2.85;
+		const livePreviewTop = mainTop + mainHeight + liveGap;
+		const previewHeight = Math.max(1, viewportHeight - livePreviewTop - (isNarrow ? 8 : 14));
+
+		page.style.setProperty('--about-main-left', `${mainLeft.toFixed(2)}px`);
+		page.style.setProperty('--about-main-top', `${mainTop.toFixed(2)}px`);
+		page.style.setProperty('--about-main-width', `${mainWidth.toFixed(2)}px`);
+		page.style.setProperty('--about-main-height', `${mainHeight.toFixed(2)}px`);
+		page.style.setProperty('--about-main-radius', `${mainRadius.toFixed(2)}rem`);
+		page.style.setProperty('--about-main-padding', `${mainPadding.toFixed(2)}rem`);
+		page.style.setProperty('--about-main-tilt', `${(intro * -1.35).toFixed(2)}deg`);
+		page.style.setProperty('--about-main-scale', `${(1 + intro * 0.008).toFixed(3)}`);
+		page.style.setProperty('--about-main-glow-opacity', `${(0.28 + intro * 0.58).toFixed(3)}`);
+		page.style.setProperty('--about-main-glow-scale', `${(0.72 + intro * 0.4).toFixed(3)}`);
+		page.style.setProperty('--about-live-left', `${compactLeft.toFixed(2)}px`);
+		page.style.setProperty('--about-live-top', `${livePreviewTop.toFixed(2)}px`);
+		page.style.setProperty('--about-live-width', `${compactWidth.toFixed(2)}px`);
+		page.style.setProperty('--about-live-height', `${previewHeight.toFixed(2)}px`);
+		page.style.setProperty('--about-live-opacity', `${(introDone ? 1 : revealProgress).toFixed(3)}`);
+		page.style.setProperty('--about-live-y', `${((1 - revealProgress) * 42).toFixed(2)}px`);
+		page.style.setProperty('--about-live-scale', `${(0.94 + revealProgress * 0.06).toFixed(3)}`);
+		page.style.setProperty('--about-content-opacity', contentProgress.toFixed(3));
+		page.style.setProperty('--about-content-y', `${((1 - contentProgress) * 54).toFixed(2)}px`);
+		content.style.pointerEvents = introDone ? '' : 'none';
+		content.style.visibility = '';
+		mainbox.classList.toggle('is-expanded', mainProgress < 0.72 || isNarrow);
+
+		if (isNarrow || reduceMotion) {
+			avatar.style.setProperty('--about-avatar-x', '0px');
+			avatar.style.setProperty('--about-avatar-y', '0px');
+			avatar.style.setProperty('--about-avatar-scale', (1 + intro * 0.18).toFixed(3));
+			avatar.style.setProperty('--about-avatar-rx', '0deg');
+			avatar.style.setProperty('--about-avatar-ry', '0deg');
+			copy.style.setProperty('--about-copy-x', '0px');
+			copy.style.setProperty('--about-copy-y', '0px');
+			copy.style.setProperty('--about-copy-scale', '1');
+			updateTimelineRows(revealProgress);
+			if (shouldContinueIntro) {
+				requestMotionUpdate();
+			}
+			return;
+		}
+
+		const targetAvatarX = mainbox.clientWidth / 2;
+		const targetAvatarY = mainbox.clientHeight * 0.37;
+		const normalAvatarX = avatar.offsetLeft + avatar.offsetWidth / 2;
+		const normalAvatarY = avatar.offsetTop + avatar.offsetHeight / 2;
+		const avatarX = (targetAvatarX - normalAvatarX) * intro;
+		const avatarY = (targetAvatarY - normalAvatarY) * intro;
+
+		const targetCopyX = mainbox.clientWidth / 2;
+		const targetCopyY = targetAvatarY + avatar.offsetHeight * (1.02 + intro * 0.08);
+		const normalCopyX = copy.offsetLeft + copy.offsetWidth / 2;
+		const normalCopyY = copy.offsetTop + copy.offsetHeight / 2;
+		const copyX = (targetCopyX - normalCopyX) * intro;
+		const copyY = (targetCopyY - normalCopyY) * intro;
+
+		avatar.style.setProperty('--about-avatar-x', `${avatarX.toFixed(2)}px`);
+		avatar.style.setProperty('--about-avatar-y', `${avatarY.toFixed(2)}px`);
+		avatar.style.setProperty('--about-avatar-scale', (1 + intro * 0.36).toFixed(3));
+		avatar.style.setProperty('--about-avatar-rx', `${(intro * 2.4).toFixed(2)}deg`);
+		avatar.style.setProperty('--about-avatar-ry', `${(intro * -4.6).toFixed(2)}deg`);
+		copy.style.setProperty('--about-copy-x', `${copyX.toFixed(2)}px`);
+		copy.style.setProperty('--about-copy-y', `${copyY.toFixed(2)}px`);
+		copy.style.setProperty('--about-copy-scale', (1 + intro * 0.032).toFixed(3));
+		updateTimelineRows(revealProgress);
+		if (shouldContinueIntro) {
+			requestMotionUpdate();
+		}
+	};
+
+	const requestMotionUpdate = () => {
+		if (frame) return;
+		frame = window.requestAnimationFrame(updateMotion);
+	};
+
+	const pushIntroScroll = (deltaY: number) => {
+		if (reduceMotion || introDone || !Number.isFinite(deltaY) || Math.abs(deltaY) < 0.5) {
+			requestMotionUpdate();
+			return false;
+		}
+
+		lastLeakedScrollTop = 0;
+		return startIntroAutoScroll(deltaY);
+	};
+
+	const handleWheelMotion = (event: WheelEvent) => {
+		if (introDone || reduceMotion) return;
+		if (!markInputEvent(event)) return;
+		event.preventDefault();
+		event.stopPropagation();
+		event.stopImmediatePropagation();
+		const unit = event.deltaMode === 1 ? 40 : event.deltaMode === 2 ? window.innerHeight : 1;
+		pushIntroScroll(event.deltaY * unit);
+	};
+
+	const handleTouchStartMotion = (event: TouchEvent) => {
+		if (introDone || reduceMotion) return;
+		lastTouchY = event.touches[0]?.clientY ?? null;
+	};
+
+	const handleTouchMoveMotion = (event: TouchEvent) => {
+		if (introDone || reduceMotion) return;
+		if (!markInputEvent(event)) return;
+		const currentY = event.touches[0]?.clientY ?? null;
+		if (currentY === null || lastTouchY === null) {
+			lastTouchY = currentY;
+			requestMotionUpdate();
+			return;
+		}
+
+		event.preventDefault();
+		event.stopPropagation();
+		event.stopImmediatePropagation();
+		pushIntroScroll(lastTouchY - currentY);
+		lastTouchY = currentY;
+	};
+
+	const handleKeyMotion = (event: KeyboardEvent) => {
+		if (introDone || reduceMotion) return;
+		const keyDeltas: Record<string, number> = {
+			ArrowDown: 72,
+			PageDown: window.innerHeight * 0.32,
+			" ": window.innerHeight * 0.32,
+			ArrowUp: -72,
+			PageUp: -window.innerHeight * 0.32,
+			Home: -introDistance,
+			End: introDistance,
+		};
+		const delta = keyDeltas[event.key];
+		if (delta === undefined) {
+			requestMotionUpdate();
+			return;
+		}
+
+		event.preventDefault();
+		pushIntroScroll(delta);
+	};
+
+	const motionListenerCleanups: Array<() => void> = [];
+	const addMotionListener = (
+		target: EventTarget | null | undefined,
+		eventName: string,
+		options?: AddEventListenerOptions | boolean,
+		handler: EventListener = requestMotionUpdate,
+	) => {
+		if (!target) return;
+		target.addEventListener(eventName, handler, options);
+		motionListenerCleanups.push(() => target.removeEventListener(eventName, handler, options));
+	};
+
+	if (!reduceMotion) {
+		writeScrollTop(0);
+	}
+	setMotionMode();
+	updateMotion();
+	window.requestAnimationFrame(() => {
+		if (!introDone && !reduceMotion) {
+			writeScrollTop(0);
+			requestMotionUpdate();
+		}
+	});
+	root.classList.add('about-js-motion-ready');
+	addMotionListener(window, 'scroll', { passive: true });
+	addMotionListener(document, 'scroll', { passive: true, capture: true });
+	addMotionListener(document.documentElement, 'scroll', { passive: true });
+	addMotionListener(document.body, 'scroll', { passive: true });
+	addMotionListener(scrollOffsetElement, 'scroll', { passive: true });
+	addMotionListener(scrollEventElement, 'scroll', { passive: true });
+	addMotionListener(bodyScrollElements?.viewport, 'scroll', { passive: true });
+	addMotionListener(window, 'wheel', { passive: false, capture: true }, handleWheelMotion as EventListener);
+	addMotionListener(document, 'wheel', { passive: false, capture: true }, handleWheelMotion as EventListener);
+	addMotionListener(document.documentElement, 'wheel', { passive: false, capture: true }, handleWheelMotion as EventListener);
+	addMotionListener(document.body, 'wheel', { passive: false, capture: true }, handleWheelMotion as EventListener);
+	addMotionListener(scrollOffsetElement, 'wheel', { passive: false, capture: true }, handleWheelMotion as EventListener);
+	addMotionListener(scrollEventElement, 'wheel', { passive: false, capture: true }, handleWheelMotion as EventListener);
+	addMotionListener(bodyScrollElements?.viewport, 'wheel', { passive: false, capture: true }, handleWheelMotion as EventListener);
+	addMotionListener(window, 'touchstart', { passive: true }, handleTouchStartMotion as EventListener);
+	addMotionListener(window, 'touchmove', { passive: false, capture: true }, handleTouchMoveMotion as EventListener);
+	addMotionListener(document, 'touchmove', { passive: false, capture: true }, handleTouchMoveMotion as EventListener);
+	addMotionListener(document.documentElement, 'touchmove', { passive: false, capture: true }, handleTouchMoveMotion as EventListener);
+	addMotionListener(document.body, 'touchmove', { passive: false, capture: true }, handleTouchMoveMotion as EventListener);
+	addMotionListener(scrollOffsetElement, 'touchmove', { passive: false, capture: true }, handleTouchMoveMotion as EventListener);
+	addMotionListener(scrollEventElement, 'touchmove', { passive: false, capture: true }, handleTouchMoveMotion as EventListener);
+	addMotionListener(bodyScrollElements?.viewport, 'touchmove', { passive: false, capture: true }, handleTouchMoveMotion as EventListener);
+	addMotionListener(window, 'keydown', undefined, handleKeyMotion as EventListener);
+	addMotionListener(window, 'resize');
+	const motionPoll = window.setInterval(requestMotionUpdate, 120);
+
+	aboutMotionCleanup = () => {
+		if (frame) window.cancelAnimationFrame(frame);
+		window.clearInterval(motionPoll);
+		motionListenerCleanups.forEach((cleanup) => cleanup());
+		resetLiveItems();
+	};
+}
+
 function init() {
 	// disableAnimation()()		// TODO
 	loadTheme();
 	loadHue();
 	initCustomScrollbar();
+	initAboutMotion();
 	showBanner();
 }
 
@@ -404,7 +2318,10 @@ const setup = () => {
 			navbar.classList.add('navbar-hidden')
 		}
 	})
-	window.swup.hooks.on('content:replace', initCustomScrollbar)
+	window.swup.hooks.on('content:replace', () => {
+		initCustomScrollbar();
+		initAboutMotion();
+	})
 	window.swup.hooks.on('visit:start', (visit: {to: {url: string}}) => {
 		// change banner height immediately when a link is clicked
 		const bodyElement = document.querySelector('body')
@@ -427,6 +2344,11 @@ const setup = () => {
 		}
 	});
 	window.swup.hooks.on('page:view', () => {
+		try {
+			sessionStorage.removeItem("__serveltInternalNavigation");
+		} catch {}
+		initAboutMotion();
+
 		// hide the temp high element when the transition is done
 		const heightExtend = document.getElementById('page-height-extend')
 		if (heightExtend) {
@@ -434,6 +2356,10 @@ const setup = () => {
 		}
 	});
 	window.swup.hooks.on('visit:end', (_visit: {to: {url: string}}) => {
+		try {
+			sessionStorage.removeItem("__serveltInternalNavigation");
+		} catch {}
+
 		setTimeout(() => {
 			const heightExtend = document.getElementById('page-height-extend')
 			if (heightExtend) {
@@ -448,11 +2374,29 @@ const setup = () => {
         }, 200)
 	});
 }
-if (window?.swup?.hooks) {
-	setup()
-} else {
-	document.addEventListener('swup:enable', setup)
-}
+	let swupHookSetupDone = false;
+	const setupWhenSwupReady = () => {
+		if (swupHookSetupDone) return true;
+		if (!window?.swup?.hooks) return false;
+		swupHookSetupDone = true;
+		setup();
+		return true;
+	};
+
+	if (!setupWhenSwupReady()) {
+		let attempts = 0;
+		const waitForSwup = () => {
+			if (setupWhenSwupReady()) {
+				document.removeEventListener('astro:page-load', waitForSwup);
+				return;
+			}
+			if (attempts++ < 160) {
+				window.setTimeout(waitForSwup, 50);
+			}
+		};
+		document.addEventListener('astro:page-load', waitForSwup);
+		waitForSwup();
+	}
 
 let backToTopBtn = document.getElementById('back-to-top-btn');
 let toc = document.getElementById('toc-wrapper');
@@ -559,9 +2503,27 @@ const setup = () => {
 	)
 }
 
-if (window.swup) {
-	setup()
-} else {
-	document.addEventListener("swup:enable", setup)
-}
-</script>
+	let photoSwipeSwupSetupDone = false;
+	const setupPhotoSwipeWhenSwupReady = () => {
+		if (photoSwipeSwupSetupDone) return true;
+		if (!window.swup?.hooks) return false;
+		photoSwipeSwupSetupDone = true;
+		setup();
+		return true;
+	};
+
+	if (!setupPhotoSwipeWhenSwupReady()) {
+		let attempts = 0;
+		const waitForSwup = () => {
+			if (setupPhotoSwipeWhenSwupReady()) {
+				document.removeEventListener("astro:page-load", waitForSwup);
+				return;
+			}
+			if (attempts++ < 160) {
+				window.setTimeout(waitForSwup, 50);
+			}
+		};
+		document.addEventListener("astro:page-load", waitForSwup);
+		waitForSwup();
+	}
+	</script>

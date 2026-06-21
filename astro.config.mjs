@@ -39,7 +39,7 @@ export default defineConfig({
 			animationClass: "transition-swup-", // see https://swup.js.org/options/#animationselector
 			// the default value `transition-` cause transition delay
 			// when the Tailwind class `transition-all` is used
-			containers: ["main", "#toc"],
+			containers: ["#swup-container", "#toc"],
 			smoothScrolling: true,
 			cache: true,
 			preload: true,
@@ -100,7 +100,13 @@ export default defineConfig({
 				showCopyToClipboardButton: false,
 			}
 		}),
-        svelte(),
+        svelte({
+            compilerOptions: {
+                experimental: {
+                    async: true,
+                },
+            },
+        }),
 		sitemap(),
 		mdx(),
 	],
@@ -156,6 +162,7 @@ export default defineConfig({
 		],
 	},
 	vite: {
+		cacheDir: "/tmp/servelt-vite-cache",
 		build: {
 			rollupOptions: {
 				onwarn(warning, warn) {

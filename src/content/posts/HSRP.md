@@ -39,7 +39,7 @@ HSRP는 간단히 말해, 게이트웨이 경로가 죽으면,<br>
 
 이제 아이피 설정을 마쳤으면 NAT 설정을 해보도록 하자!<br>
 아래는 관련 명령어이다!
-```network
+```text
 <Router0>
 Router> enable
 Router# configure terimnal

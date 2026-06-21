@@ -36,7 +36,7 @@ RIP에 대해서 정리한 글이다!<br>
 
 이제 아이피 설정을 마쳤으면 RIP 설정을 해보도록 하자!<br>
 아래는 관련 명령어이다!
-```network
+```text
 <Router0>
 Router> enable
 Router# configure terminal
@@ -144,7 +144,7 @@ MP 프레임 릴레이에서도 `충분히 통신을 할 수 있다!`
 
 이제 아이피 설정을 마쳤으면 RIP와 MP 프레임 릴레이 설정을 해보도록 하자!<br>
 아래는 관련 명령어이다!
-```network
+```text
 <Router 0>
 Router> enable
 Router# configure terminal

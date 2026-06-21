@@ -100,7 +100,7 @@ active, desireable로써 보내진 `요청이 자신의 스위치에게 도착�
 
 이제 설정을 해보도록 하자!
 아래는 관련 명령어이다!
-```network
+```text
 Switch> enable
 Switch# configure terminal
 Switch(config)# interface range fa0/1-2

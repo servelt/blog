@@ -30,7 +30,7 @@ DHCP를 사용하기 위해선, 여러가지 방법이 존재한다!<br>
 이제 DHCP 설정을 하기 위해선,<br>
 L3장비인 라우터에서 `직접 아이피 할당을 해주도록 설정 할 수 있다!`<br>
 아래는 관련 명령어이다!
-```network
+```text
 Router> enable
 Router# configure terminal
 Router(config)# service dhcp
@@ -186,7 +186,7 @@ DHCP 설정이 끝난후 PC에 케이블을 연결했을때,<br>
 `서버까지 갈 수 있도록` 설정을 해줘야하는것이다!
 
 아래는 관련 명령어이다!
-```network
+```text
 Router> enable
 Router# configure terminal
 

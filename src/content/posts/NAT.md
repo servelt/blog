@@ -55,7 +55,7 @@ NAT 기법에 대해서 정리한 글이다!<br>
 
 이제 아이피 설정을 마쳤으면 NAT 설정을 해보도록 하자!<br>
 아래는 관련 명령어이다!
-```network
+```text
 Router> enable
 Router# configure terminal
 
@@ -100,7 +100,7 @@ Router(config)# ip nat inside source static 192.168.10.3 1.1.12.4
 
 이제 아이피 설정을 마쳤으면 NAT 설정을 해보도록 하자!<br>
 아래는 관련 명령어이다!
-```network
+```text
 Router> enable
 Router# configure terminal
 
@@ -158,7 +158,7 @@ NAT를 하기위해선, 어느 인터페이스가 `내부로 들어가는 인터
 
 이제 아이피 설정을 마쳤으면 NAT 설정을 해보도록 하자!<br>
 아래는 관련 명령어이다!
-```network
+```text
 Router> enable
 Router# configure terminal
 

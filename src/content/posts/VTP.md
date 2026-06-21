@@ -59,7 +59,7 @@ VTP로 연결된 다른 스위치가 있다면 `그대로 넘겨주는 모드이
 
 일단 기본적으로 VTP에 관한 설정을 확인하기 위해선, <br>
 관리자 모드안에서 아래 명령어를 적으면 된다!
-```network
+```text
 Switch# show vtp status
 ```
 
@@ -79,7 +79,7 @@ Switch# show vtp status
 
 ### 빨간색 스위치 설정
 아래는 빨간색 스위치에 관한 설정이다!
-```network
+```text
 Switch> enable
 Switch# configure terminal
 Switch(config)# vtp domain cisco
@@ -99,7 +99,7 @@ Switch(config)# switchport mode trunk
 (추가적으로 모드를 설정해주지 않은 이유는 스위치가 `이미 서버 모드이기` 때문이다!)
 
 ### 주황색 스위치 설정
-```network
+```text
 Switch> enable
 Switch# configure terminal
 Switch(config)# vtp mode transparent
@@ -119,7 +119,7 @@ Switch(config)# switchport mode trunk
 `빨간색 스위치의 1번 포트에 이미 트렁킹이 되어있기 때문이다!`
 
 ### 주황색 스위치 설정
-```network
+```text
 Switch> enable
 Switch# configure terminal
 Switch(config)# vtp mode client
@@ -137,7 +137,7 @@ Switch(config)# vtp password 1234
 ## 서버 모드 스위치 정보 변경
 이제 모든 설정을 마쳤으니, 직접 `서버 모드 스위치의 vlan을 만들어보도록 하자!`<br>
 아래는 vlan을 만드는 명령어이다!
-```network
+```text
 Switch> enable
 Switch# configure terminal
 Switch(config)# vlan 100
@@ -162,7 +162,7 @@ Switch(config)# vlan 100
 이제 서버모드의 스위치를 변경해보았으니, 모든 스위치에 vlan 정보를 지운후,<br>
 `트렌스페어런트 모드인 주황색에 다시 한번 vlan을 만들어보도록 하자!`<br>
 아래는 vlan을 만드는 명령어이다!
-```network
+```text
 Switch> enable
 Switch# configure terminal
 Switch(config)# vlan 100

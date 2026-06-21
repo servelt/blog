@@ -41,7 +41,7 @@ category: Concept
 
 이제 모든 아이피 설정을 끝맞쳤으면, Static 라우팅을 해보도록 하자!
 아래는 관련 명령어이다! 
-```network
+```text
 [Router0]
 Router> enable
 Router# configure terminal

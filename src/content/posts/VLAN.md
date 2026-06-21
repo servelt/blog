@@ -31,7 +31,7 @@ VLAN을 설정하기 위해 일단 `토폴로지`를 아래와 같이 구성해�
 이후, Switch를 눌러 관리자 모드에 들어간후, <br>
 아래 명령어를 입력하면 현재 존재하는 VLAN과<br>
 소속된 인터페이스들을 확인할 수 있다!
-```network
+```text
 Switch# show vlan brief
 ```
 ![terminal1](./VLAN/terminal1.png)
@@ -46,7 +46,7 @@ Switch# show vlan brief
 
 이제 직접 해보도록 하자!<br>
 아래는 설정에 관련된 명령어다!
-```network
+```text
 Switch> enable (관리자 모드 전환!)
 Switch# configure terminal (설정 모드 전환!)
 Switch(config)# vlan 100 (100이라는 vlan 생성과 동시에 설정 모드로 전환!)
@@ -106,7 +106,7 @@ vlan 100에 `FastEthernet0/1`, `FastEthernet0/2`<br>
 
 기본적으로 라우터에서 서브 인터페이스를 접속해,<br>
 vlan과 아이피를 설정하는 명령어는 다음과 같다!
-```network
+```text
 Router> enable
 Router# configure terminal
 Router(config)# interface fa0/0.100
@@ -157,7 +157,7 @@ Router(config-subif)# ip address 172.16.10.1 255.255.255.0
 `모든 패킷이 라우터로` 감으로써, 통신이 원할하게 될수 있다!
 
 아래는 모드를 바꾸는 명령어이다!
-```network
+```text
 Switch> enable
 Switch# configure terminal
 Switch(config)# interface fa0/24
@@ -206,7 +206,7 @@ Switch(config)# switchport mode trunk
 
 이 `엄청난 스위치`는 트렁킹을 하기 위해서 적어줘야할 명령어가 하나 더 존재한다!<br>
 아래는 `엄청난 스위치`의 트렁킹 설정을 하는 명령어이다!
-```network
+```text
 Switch> enable
 Switch# configure terminal
 Switch(config)# interface fa0/1
