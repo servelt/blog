@@ -462,13 +462,17 @@ $: {
 
 	.archive-shell::before {
 		content: "";
+		display: none;
 		position: absolute;
-		inset: 0 -4rem -5rem;
+		inset: -2.5rem -7rem -6rem;
 		z-index: -1;
 		background:
-			radial-gradient(circle at 16% 4%, rgba(196, 123, 255, 0.16), transparent 18rem),
-			radial-gradient(circle at 82% 36%, rgba(176, 92, 255, 0.12), transparent 23rem),
-			radial-gradient(circle at 50% 100%, rgba(218, 178, 255, 0.07), transparent 22rem);
+			radial-gradient(ellipse at 22% 12%, rgba(196, 123, 255, 0.13), transparent 29rem),
+			radial-gradient(ellipse at 82% 34%, rgba(176, 92, 255, 0.105), transparent 32rem),
+			radial-gradient(ellipse at 50% 92%, rgba(218, 178, 255, 0.06), transparent 30rem);
+		mask-image: radial-gradient(ellipse at 48% 24%, black 0 34%, rgb(0 0 0 / 0.72) 58%, transparent 82%);
+		-webkit-mask-image: radial-gradient(ellipse at 48% 24%, black 0 34%, rgb(0 0 0 / 0.72) 58%, transparent 82%);
+		opacity: 0.95;
 		pointer-events: none;
 	}
 

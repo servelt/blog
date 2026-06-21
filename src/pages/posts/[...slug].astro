@@ -131,14 +131,17 @@ const jsonLd = {
 
     .post-shell::before {
         content: "";
+        display: none;
         position: absolute;
-        inset: 0 -4rem auto;
+        inset: -2.5rem -7rem auto;
         z-index: -1;
-        height: 34rem;
+        height: 38rem;
         background:
-            radial-gradient(circle at 14% 2%, rgba(198, 132, 255, 0.18), transparent 20rem),
-            radial-gradient(circle at 84% 10%, rgba(232, 202, 255, 0.11), transparent 23rem),
-            linear-gradient(180deg, rgba(198, 132, 255, 0.075), transparent 72%);
+            radial-gradient(ellipse at 18% 10%, rgba(198, 132, 255, 0.16), transparent 30rem),
+            radial-gradient(ellipse at 84% 18%, rgba(232, 202, 255, 0.09), transparent 34rem),
+            radial-gradient(ellipse at 48% 86%, rgba(150, 70, 235, 0.065), transparent 30rem);
+        mask-image: radial-gradient(ellipse at 42% 20%, black 0 34%, rgb(0 0 0 / 0.7) 58%, transparent 82%);
+        -webkit-mask-image: radial-gradient(ellipse at 42% 20%, black 0 34%, rgb(0 0 0 / 0.7) 58%, transparent 82%);
         pointer-events: none;
     }
 
@@ -152,10 +155,10 @@ const jsonLd = {
 
     .post-hero {
         position: relative;
-        overflow: hidden;
+        overflow: visible;
         min-height: clamp(18rem, 44vh, 27rem);
         margin: 0 0 clamp(2rem, 5vw, 3.8rem);
-        border-bottom: 1px solid rgba(198, 132, 255, 0.16);
+        border-bottom: 0;
         padding:
             clamp(1.6rem, 5vw, 3.2rem)
             clamp(1.05rem, 3.4vw, 2.4rem)
@@ -164,27 +167,30 @@ const jsonLd = {
 
     .post-hero::before {
         content: "";
+        display: none;
         position: absolute;
-        inset: 0;
+        inset: -1.5rem -2rem -2.5rem;
         z-index: -1;
         background:
-            linear-gradient(90deg, rgba(198, 132, 255, 0.15), transparent 58%),
-            radial-gradient(circle at 20% 28%, rgba(224, 188, 255, 0.18), transparent 18rem);
-        mask-image: linear-gradient(180deg, black 0 82%, transparent);
+            radial-gradient(ellipse at 18% 28%, rgba(224, 188, 255, 0.15), transparent 22rem),
+            radial-gradient(ellipse at 48% 20%, rgba(198, 132, 255, 0.08), transparent 34rem);
+        mask-image: radial-gradient(ellipse at 34% 32%, black 0 38%, rgb(0 0 0 / 0.74) 58%, transparent 82%);
+        -webkit-mask-image: radial-gradient(ellipse at 34% 32%, black 0 38%, rgb(0 0 0 / 0.74) 58%, transparent 82%);
         pointer-events: none;
     }
 
     .post-hero::after {
         content: "";
+        display: none;
         position: absolute;
         left: 0;
-        bottom: -1px;
-        width: min(36rem, 78%);
-        height: 1px;
-        background: linear-gradient(90deg, rgba(249, 238, 255, 0.88), rgba(198, 132, 255, 0.5), transparent);
-        box-shadow:
-            0 0 1.2rem rgba(232, 202, 255, 0.42),
-            0 0 3rem rgba(172, 92, 255, 0.22);
+        right: auto;
+        bottom: -3.4rem;
+        width: min(42rem, 82%);
+        height: 7rem;
+        background: radial-gradient(ellipse at 18% 50%, rgba(224, 188, 255, 0.13), rgba(198, 132, 255, 0.06) 34%, transparent 72%);
+        filter: blur(0.25rem);
+        pointer-events: none;
     }
 
     .post-hero-inner {
