@@ -455,14 +455,15 @@ $: {
 	.archive-shell {
 		position: relative;
 		isolation: isolate;
+		margin-top: 1rem;
 		margin-bottom: 2.25rem;
-		padding: 0.2rem 0 1.2rem;
+		padding: 1rem 0 1.2rem;
 	}
 
 	.archive-shell::before {
 		content: "";
 		position: absolute;
-		inset: -8rem -4rem -5rem;
+		inset: 0 -4rem -5rem;
 		z-index: -1;
 		background:
 			radial-gradient(circle at 16% 4%, rgba(196, 123, 255, 0.16), transparent 18rem),
@@ -817,15 +818,7 @@ $: {
 	}
 
 	.archive-list::before {
-		content: "";
-		position: absolute;
-		top: 0.75rem;
-		bottom: 0.35rem;
-		left: 0.28rem;
-		width: 1px;
-		background: linear-gradient(180deg, rgba(232, 202, 255, 0.48), rgba(198, 132, 255, 0.16), transparent);
-		box-shadow: 0 0 1.4rem rgba(198, 132, 255, 0.2);
-		pointer-events: none;
+		display: none;
 	}
 
 	.archive-list-year {
@@ -850,9 +843,22 @@ $: {
 	}
 
 	.archive-list-items {
+		position: relative;
 		display: flex;
 		flex-direction: column;
 		border-top: 1px solid rgba(198, 132, 255, 0.13);
+	}
+
+	.archive-list-items::before {
+		content: "";
+		position: absolute;
+		top: -0.1rem;
+		bottom: 0.35rem;
+		left: -1.07rem;
+		width: 1px;
+		background: linear-gradient(180deg, rgba(232, 202, 255, 0.48), rgba(198, 132, 255, 0.16), transparent);
+		box-shadow: 0 0 1.4rem rgba(198, 132, 255, 0.2);
+		pointer-events: none;
 	}
 
 	.archive-list-row {
@@ -986,14 +992,14 @@ $: {
 			transform: none;
 		}
 
-		.archive-list::before {
-			left: 0.18rem;
-		}
-
 		.archive-list-year {
 			grid-template-columns: 1fr;
 			gap: 0.4rem;
 			padding-left: 0.9rem;
+		}
+
+		.archive-list-items::before {
+			left: -0.72rem;
 		}
 
 		.archive-list-year h2 {
