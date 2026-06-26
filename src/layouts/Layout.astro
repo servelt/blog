@@ -2123,15 +2123,15 @@ function initAboutMotion() {
 			return;
 		}
 
-		const targetAvatarX = mainbox.clientWidth / 2;
-		const targetAvatarY = mainbox.clientHeight * 0.37;
+		const targetAvatarX = mainbox.clientWidth * 0.36;
+		const targetAvatarY = mainbox.clientHeight * 0.52;
 		const normalAvatarX = avatar.offsetLeft + avatar.offsetWidth / 2;
 		const normalAvatarY = avatar.offsetTop + avatar.offsetHeight / 2;
 		const avatarX = (targetAvatarX - normalAvatarX) * intro;
 		const avatarY = (targetAvatarY - normalAvatarY) * intro;
 
-		const targetCopyX = mainbox.clientWidth / 2;
-		const targetCopyY = targetAvatarY + avatar.offsetHeight * (1.02 + intro * 0.08);
+		const targetCopyX = mainbox.clientWidth * 0.64;
+		const targetCopyY = mainbox.clientHeight * 0.51;
 		const normalCopyX = copy.offsetLeft + copy.offsetWidth / 2;
 		const normalCopyY = copy.offsetTop + copy.offsetHeight / 2;
 		const copyX = (targetCopyX - normalCopyX) * intro;
@@ -2139,12 +2139,12 @@ function initAboutMotion() {
 
 		avatar.style.setProperty('--about-avatar-x', `${avatarX.toFixed(2)}px`);
 		avatar.style.setProperty('--about-avatar-y', `${avatarY.toFixed(2)}px`);
-		avatar.style.setProperty('--about-avatar-scale', (1 + intro * 0.36).toFixed(3));
-		avatar.style.setProperty('--about-avatar-rx', `${(intro * 2.4).toFixed(2)}deg`);
-		avatar.style.setProperty('--about-avatar-ry', `${(intro * -4.6).toFixed(2)}deg`);
+		avatar.style.setProperty('--about-avatar-scale', (1 + intro * 0.06).toFixed(3));
+		avatar.style.setProperty('--about-avatar-rx', `${(intro * 1.2).toFixed(2)}deg`);
+		avatar.style.setProperty('--about-avatar-ry', `${(intro * -2.4).toFixed(2)}deg`);
 		copy.style.setProperty('--about-copy-x', `${copyX.toFixed(2)}px`);
 		copy.style.setProperty('--about-copy-y', `${copyY.toFixed(2)}px`);
-		copy.style.setProperty('--about-copy-scale', (1 + intro * 0.032).toFixed(3));
+		copy.style.setProperty('--about-copy-scale', (1 + intro * 0.012).toFixed(3));
 		updateTimelineRows(revealProgress);
 		if (shouldContinueIntro) {
 			requestMotionUpdate();
