@@ -16,6 +16,14 @@ function cleanNote(value: string) {
 function splitSubtitle(subtitle?: string) {
   if (!subtitle) return null;
 
+  const parenthesizedNote = subtitle.match(/^(.+?)\s*\(([^()]*)\)\s*$/);
+  if (parenthesizedNote) {
+    return {
+      main: parenthesizedNote[1].trim(),
+      note: cleanNote(parenthesizedNote[2]),
+    };
+  }
+
   const match = subtitle.match(
     /(1st Place|2nd Place|3rd Place|\d+th Place|Gold Award|Silver Award|Bronze Award|National Technical Qualification|Project Manager|Sunrin Club Head|Information Security|Participant|Mentee|Member)/i,
   );
