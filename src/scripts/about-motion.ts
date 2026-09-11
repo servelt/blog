@@ -26,11 +26,10 @@ export function initAboutMotion() {
 	const media = window.matchMedia("(prefers-reduced-motion: reduce)");
 	const items = Array.from(
 		liveStack.querySelectorAll<HTMLElement>(
-			".about-stats, .about-intro-card, .about-timeline-section, .about-achievements h2, .about-achievements .row",
+			".about-stats, .about-intro-card, .about-timeline-section, .about-achievements",
 		),
 	);
 	const properties = new Set<string>();
-	const revealed = new WeakMap<HTMLElement, number>();
 	let expanded: ProfileLayout;
 	let compact: ProfileLayout;
 	let distance = 1;
@@ -41,13 +40,14 @@ export function initAboutMotion() {
 	let measured = false;
 	let targetRaw = 0;
 	let displayedRaw = 0;
-	let scrubFrom = 0;
-	let scrubStartedAt = 0;
-	const scrubDuration = 800;
+	let lastFrameAt = 0;
+	const scrubResponse = 115;
+	const maxRawStep = 0.04;
 
 	const clamp = (value: number, min = 0, max = 1) =>
 		Math.min(max, Math.max(min, value));
 	const ease = (value: number) => 1 - (1 - value) ** 3;
+	const smooth = (value: number) => value * value * (3 - 2 * value);
 	const set = (name: string, value: string) => {
 		properties.add(name);
 		page.style.setProperty(name, value);
@@ -84,16 +84,16 @@ export function initAboutMotion() {
 
 	const readRaw = () => clamp(-track.getBoundingClientRect().top / distance);
 	const render = (raw: number) => {
-		// Match the reference timeline: hold the pinned hero, make the profile
-		// transition decisively, then reveal the content while the stage stays pinned.
-		const progress = ease(clamp((raw - 0.16) / 0.38));
+		// Finish the profile morph before the sticky range ends. The remaining
+		// scroll distance gives the short scrub time to settle without a snap.
+		const progress = smooth(clamp(raw / 0.68));
 		const layout = { ...compact };
 		for (const key of Object.keys(layout) as (keyof ProfileLayout)[]) {
 			layout[key] = expanded[key] + (compact[key] - expanded[key]) * progress;
 		}
 		root.classList.toggle("about-motion-running", raw < 1);
 		root.classList.toggle("about-motion-complete", raw >= 1);
-		mainbox.classList.toggle("is-expanded", narrow || progress < 0.86);
+		mainbox.classList.toggle("is-expanded", narrow || raw < 0.8);
 		applyLayout(layout);
 		set("--about-main-radius", `${(progress * 0.95).toFixed(3)}rem`);
 		set("--about-main-tilt", `${((1 - progress) * -1.35).toFixed(3)}deg`);
@@ -101,22 +101,17 @@ export function initAboutMotion() {
 		set("--about-main-glow-opacity", (0.28 + (1 - progress) * 0.58).toFixed(3));
 		set("--about-main-glow-scale", (0.72 + (1 - progress) * 0.4).toFixed(3));
 
-		// Keep the original staggered fade/slide/blur as the timeline comes into view.
-		const start = window.innerHeight * 1.04;
-		const span = Math.max(100, window.innerHeight * 0.22);
-		const revealGate = ease(clamp((raw - 0.3) / 0.38));
-		const positions = items.map((item) => item.getBoundingClientRect().top);
+		// Stagger the first cards as the profile contracts. This avoids forcing a
+		// full-page layout read on every animation frame.
+		const revealGate = smooth(clamp((raw - 0.28) / 0.58));
 		items.forEach((item, index) => {
-			const visible = clamp((start - positions[index]) / span);
-			const gated = Math.min(visible, revealGate);
-			const reveal = raw < 1 ? gated : Math.max(gated, revealed.get(item) ?? 0);
-			revealed.set(item, reveal);
+			const delay = Math.min(index, 5) * 0.07;
+			const reveal = clamp((revealGate - delay) / (1 - delay));
 			const amount = ease(reveal);
 			const remaining = 1 - amount;
-			const x = (index % 2 === 0 ? -3 : 3) * remaining;
 			item.style.opacity = amount.toFixed(3);
-			item.style.transform = `translate3d(${x.toFixed(2)}px, ${(28 * remaining).toFixed(2)}px, 0) scale(${(0.97 + amount * 0.03).toFixed(3)})`;
-			item.style.filter = `blur(${(6 * remaining).toFixed(2)}px)`;
+			item.style.transform = `translate3d(0, ${(24 * remaining).toFixed(2)}px, 0) scale(${(0.975 + amount * 0.025).toFixed(3)})`;
+			item.style.filter = "none";
 		});
 	};
 
@@ -124,29 +119,30 @@ export function initAboutMotion() {
 		if (!active) return;
 		const next = readRaw();
 		if (Math.abs(next - targetRaw) < 0.0001) return;
-		const now = performance.now();
-		if (scrubStartedAt > 0 && displayedRaw !== targetRaw) {
-			const elapsed = clamp((now - scrubStartedAt) / scrubDuration);
-			displayedRaw = scrubFrom + (targetRaw - scrubFrom) * ease(elapsed);
-		}
-		scrubFrom = displayedRaw;
 		targetRaw = next;
-		scrubStartedAt = now;
-		if (!frame) frame = window.requestAnimationFrame(tick);
+		if (!frame) {
+			lastFrameAt = performance.now();
+			frame = window.requestAnimationFrame(tick);
+		}
 	};
 
 	const tick = (now: number) => {
 		frame = 0;
 		if (!active) return;
-		const elapsed = clamp((now - scrubStartedAt) / scrubDuration);
-		displayedRaw = scrubFrom + (targetRaw - scrubFrom) * ease(elapsed);
+		const elapsed = Math.min(80, Math.max(0, now - lastFrameAt));
+		lastFrameAt = now;
+		const blend = 1 - Math.exp(-elapsed / scrubResponse);
+		const change = (targetRaw - displayedRaw) * blend;
+		displayedRaw += clamp(change, -maxRawStep, maxRawStep);
+		if (Math.abs(displayedRaw - targetRaw) < 0.0005) {
+			displayedRaw = targetRaw;
+		}
 		render(displayedRaw);
-		if (elapsed < 1 && Math.abs(displayedRaw - targetRaw) > 0.0001) {
+		if (displayedRaw !== targetRaw) {
 			frame = window.requestAnimationFrame(tick);
 			return;
 		}
-		displayedRaw = targetRaw;
-		render(displayedRaw);
+		lastFrameAt = 0;
 	};
 
 	const measure = () => {
@@ -228,8 +224,8 @@ export function initAboutMotion() {
 		expanded.height = Math.max(height, mainbox.offsetHeight);
 
 		distance = Math.max(
-			height * 0.82,
-			narrow ? 420 : 520,
+			height * 2.05,
+			narrow ? 720 : 960,
 			expanded.height - compact.height - compact.top + 1,
 		);
 		pixel("--about-scroll-distance", distance);
@@ -251,8 +247,7 @@ export function initAboutMotion() {
 			displayedRaw = targetRaw;
 			measured = true;
 		}
-		scrubFrom = displayedRaw;
-		scrubStartedAt = performance.now();
+		lastFrameAt = performance.now();
 		render(displayedRaw);
 		if (Math.abs(displayedRaw - targetRaw) > 0.0001) {
 			frame = window.requestAnimationFrame(tick);
