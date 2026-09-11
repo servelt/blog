@@ -38,6 +38,12 @@ export function initAboutMotion() {
 	let active = false;
 	let disposed = false;
 	let frame = 0;
+	let measured = false;
+	let targetRaw = 0;
+	let displayedRaw = 0;
+	let scrubFrom = 0;
+	let scrubStartedAt = 0;
+	const scrubDuration = 800;
 
 	const clamp = (value: number, min = 0, max = 1) =>
 		Math.min(max, Math.max(min, value));
@@ -76,19 +82,18 @@ export function initAboutMotion() {
 		}
 	};
 
-	const update = () => {
-		frame = 0;
-		if (!active) return;
-		// The sticky container supplies the pin. Scrolling remains entirely native.
-		const raw = clamp(-track.getBoundingClientRect().top / distance);
-		const progress = ease(raw);
+	const readRaw = () => clamp(-track.getBoundingClientRect().top / distance);
+	const render = (raw: number) => {
+		// Match the reference timeline: hold the pinned hero, make the profile
+		// transition decisively, then reveal the content while the stage stays pinned.
+		const progress = ease(clamp((raw - 0.16) / 0.38));
 		const layout = { ...compact };
 		for (const key of Object.keys(layout) as (keyof ProfileLayout)[]) {
 			layout[key] = expanded[key] + (compact[key] - expanded[key]) * progress;
 		}
 		root.classList.toggle("about-motion-running", raw < 1);
 		root.classList.toggle("about-motion-complete", raw >= 1);
-		mainbox.classList.toggle("is-expanded", narrow || progress < 0.72);
+		mainbox.classList.toggle("is-expanded", narrow || progress < 0.86);
 		applyLayout(layout);
 		set("--about-main-radius", `${(progress * 0.95).toFixed(3)}rem`);
 		set("--about-main-tilt", `${((1 - progress) * -1.35).toFixed(3)}deg`);
@@ -99,11 +104,12 @@ export function initAboutMotion() {
 		// Keep the original staggered fade/slide/blur as the timeline comes into view.
 		const start = window.innerHeight * 1.04;
 		const span = Math.max(100, window.innerHeight * 0.22);
+		const revealGate = ease(clamp((raw - 0.3) / 0.38));
 		const positions = items.map((item) => item.getBoundingClientRect().top);
 		items.forEach((item, index) => {
 			const visible = clamp((start - positions[index]) / span);
-			const reveal =
-				raw < 1 ? visible : Math.max(visible, revealed.get(item) ?? 0);
+			const gated = Math.min(visible, revealGate);
+			const reveal = raw < 1 ? gated : Math.max(gated, revealed.get(item) ?? 0);
 			revealed.set(item, reveal);
 			const amount = ease(reveal);
 			const remaining = 1 - amount;
@@ -115,7 +121,32 @@ export function initAboutMotion() {
 	};
 
 	const requestUpdate = () => {
-		if (active && !frame) frame = window.requestAnimationFrame(update);
+		if (!active) return;
+		const next = readRaw();
+		if (Math.abs(next - targetRaw) < 0.0001) return;
+		const now = performance.now();
+		if (scrubStartedAt > 0 && displayedRaw !== targetRaw) {
+			const elapsed = clamp((now - scrubStartedAt) / scrubDuration);
+			displayedRaw = scrubFrom + (targetRaw - scrubFrom) * ease(elapsed);
+		}
+		scrubFrom = displayedRaw;
+		targetRaw = next;
+		scrubStartedAt = now;
+		if (!frame) frame = window.requestAnimationFrame(tick);
+	};
+
+	const tick = (now: number) => {
+		frame = 0;
+		if (!active) return;
+		const elapsed = clamp((now - scrubStartedAt) / scrubDuration);
+		displayedRaw = scrubFrom + (targetRaw - scrubFrom) * ease(elapsed);
+		render(displayedRaw);
+		if (elapsed < 1 && Math.abs(displayedRaw - targetRaw) > 0.0001) {
+			frame = window.requestAnimationFrame(tick);
+			return;
+		}
+		displayedRaw = targetRaw;
+		render(displayedRaw);
 	};
 
 	const measure = () => {
@@ -197,11 +228,15 @@ export function initAboutMotion() {
 		expanded.height = Math.max(height, mainbox.offsetHeight);
 
 		distance = Math.max(
-			height * 1.1,
-			narrow ? 560 : 720,
+			height * 0.82,
+			narrow ? 420 : 520,
 			expanded.height - compact.height - compact.top + 1,
 		);
 		pixel("--about-scroll-distance", distance);
+		pixel(
+			"--about-content-height",
+			compact.top + compact.height + font + liveStack.offsetHeight + 6 * font,
+		);
 		pixel(
 			"--about-track-height",
 			distance +
@@ -211,7 +246,17 @@ export function initAboutMotion() {
 				liveStack.offsetHeight +
 				6 * font,
 		);
-		update();
+		targetRaw = readRaw();
+		if (!measured) {
+			displayedRaw = targetRaw;
+			measured = true;
+		}
+		scrubFrom = displayedRaw;
+		scrubStartedAt = performance.now();
+		render(displayedRaw);
+		if (Math.abs(displayedRaw - targetRaw) > 0.0001) {
+			frame = window.requestAnimationFrame(tick);
+		}
 	};
 
 	document.addEventListener("scroll", requestUpdate, {

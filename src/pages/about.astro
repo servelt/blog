@@ -1154,6 +1154,7 @@ const timelineSections = [
 		position: sticky;
 		top: 0;
 		width: 100%;
+		height: var(--about-content-height);
 		max-width: none;
 		margin: 0;
 		padding: var(--about-main-top) 0 6rem;
@@ -1199,13 +1200,13 @@ const timelineSections = [
 
 	html.about-native-scroll .about-mainbox .about-copy h1 {
 		font-size: var(--about-name-size);
+		transition: none;
 	}
 
 	html.about-native-scroll .about-mainbox:not(.is-expanded) .about-copy h1 {
 		color: rgb(255 255 255 / 0.95);
 		background: none;
 		-webkit-text-fill-color: currentColor;
-		transition: none;
 	}
 
 	html.about-native-scroll .about-live-stack {
